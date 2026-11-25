@@ -48,6 +48,44 @@ function VideoStage() {
     const obs = new MutationObserver(h); obs.observe(box.current, { attributes: true, attributeFilter: ['class'] });
     return () => { document.removeEventListener('fullscreenchange', h); obs.disconnect(); };
   }, []);
+  // App: drag the floating video tile anywhere by its handle (the video itself takes taps).
+  useEffect(() => {
+    if (!IS_APP) return;
+    const root = document.documentElement;
+    const pos = (() => { try { return JSON.parse(localStorage.getItem('dhun.vpos')) || { x: 0, y: 0 }; } catch { return { x: 0, y: 0 }; } })();
+    const apply = () => { root.style.setProperty('--vdx', pos.x + 'px'); root.style.setProperty('--vdy', pos.y + 'px'); };
+    apply();
+    const h = box.current.querySelector('.yt-drag');
+    let st = null;
+    const limits = (r) => {
+      const barTop = document.querySelector('.bar')?.getBoundingClientRect().top ?? innerHeight;
+      const top = (parseFloat(getComputedStyle(root).getPropertyValue('--sat')) || 0) + 8;
+      return { minX: pos.x - (r.left - 8), maxX: pos.x + (innerWidth - 8 - r.right), minY: pos.y - (r.top - top), maxY: pos.y + (barTop - 8 - r.bottom) };
+    };
+    const clamp = (v, a, b) => Math.min(Math.max(v, Math.min(a, b)), b);
+    const down = (e) => {
+      if (!box.current.classList.contains('mini')) return;
+      e.preventDefault(); h.setPointerCapture(e.pointerId);
+      st = { sx: e.clientX, sy: e.clientY, x: pos.x, y: pos.y, lim: limits(box.current.getBoundingClientRect()) };
+      box.current.classList.add('dragging');
+    };
+    const move = (e) => {
+      if (!st) return;
+      pos.x = clamp(st.x + e.clientX - st.sx, st.lim.minX, st.lim.maxX);
+      pos.y = clamp(st.y + e.clientY - st.sy, st.lim.minY, st.lim.maxY);
+      apply();
+    };
+    const up = () => {
+      if (!st) return;
+      // Snap to the nearer side edge
+      pos.x = Math.abs(pos.x - st.lim.minX) < Math.abs(pos.x - st.lim.maxX) ? st.lim.minX : st.lim.maxX;
+      st = null; box.current.classList.remove('dragging'); apply();
+      localStorage.setItem('dhun.vpos', JSON.stringify(pos));
+    };
+    h.addEventListener('pointerdown', down); h.addEventListener('pointermove', move);
+    h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+    return () => { h.removeEventListener('pointerdown', down); h.removeEventListener('pointermove', move); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up); };
+  }, []);
   // Leave full screen when the video goes away (e.g. next song is not a video)
   useEffect(() => { if (!visible && isFull()) toggleVideoFullscreen(); }, [visible]);
   // Float the (always-mounted) player over the Now Playing slot, or as a mini card.
@@ -88,6 +126,7 @@ function VideoStage() {
     <div ref={box} className={'yt-stage' + (visible ? ' show' : '') + (showVideo ? '' : ' hidden-video')} aria-hidden={!visible}>
       <div className={'yt-slot' + (active === 0 ? ' active' : '')}><div ref={a} /></div>
       <div className={'yt-slot' + (active === 1 ? ' active' : '')}><div ref={b} /></div>
+      {IS_APP && <button className="yt-drag" aria-label="Move video"><Icon name="move" size={18} /></button>}
       <button className="yt-fs" onClick={toggleVideoFullscreen} aria-label={full ? 'Make video small' : 'Make video big'} title={IS_APP ? undefined : (full ? 'Exit full screen (F)' : 'Full screen (F)')}>
         <Icon name={full ? 'shrink' : 'expand'} size={IS_APP ? 20 : 18} />
       </button>
