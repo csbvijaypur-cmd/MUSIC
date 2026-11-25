@@ -11,3 +11,6 @@ export const saveConfig = ({ spotifyClientId, youtubeApiKey }) => {
   safeSet('dhun.youtubeApiKey', youtubeApiKey?.trim());
 };
 export { safeGet, safeSet };
+
+// True inside the Android app (Capacitor). The app is songs-only: no video viewing.
+export const IS_APP = !!window.Capacitor?.isNativePlatform?.();

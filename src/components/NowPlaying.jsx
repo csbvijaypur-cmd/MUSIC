@@ -3,6 +3,7 @@ import Icon from './Icon.jsx';
 import Lyrics, { LyricsLang } from './Lyrics.jsx';
 import Visualizer from './Visualizer.jsx';
 import { SourceBadge } from './TrackRow.jsx';
+import { IS_APP } from '../lib/config.js';
 import { NowControls } from './PlayerBar.jsx';
 import { SleepButton, ShareButton, AddToPlaylistButton } from './Extras.jsx';
 import { useStore, jumpTo, removeAt, moveItem, setAutoplay, setShowVideo } from '../lib/store.js';
@@ -73,6 +74,7 @@ export default function NowPlaying({ open, onClose, onKaraoke }) {
         {t && <AddToPlaylistButton t={t} />}
         {t && <ShareButton t={t} />}
         <SleepButton />
+        {hasVideo && !IS_APP && <button className={'ib vid-toggle' + (showVideo ? ' on' : '')} onClick={() => setShowVideo(!showVideo)} aria-pressed={showVideo} aria-label={showVideo ? 'Hide video' : 'Show video'} title={showVideo ? 'Hide video' : 'Show video'}><Icon name="video" size={18} /></button>}
         <button className="ib" onClick={onKaraoke} aria-label="Full-screen lyrics"><Icon name="expand" size={18} /></button>
         </span>
       </div>

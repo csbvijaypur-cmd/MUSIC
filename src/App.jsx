@@ -8,6 +8,7 @@ import { PlaylistSheet } from './components/Extras.jsx';
 import { Home, Search, Library, Settings } from './components/Views.jsx';
 import { useStore, setState, mountYouTube, toggle, seek, next, livePosition, getState } from './lib/store.js';
 import * as SP from './lib/spotify.js';
+import { IS_APP } from './lib/config.js';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 
@@ -72,6 +73,9 @@ function VideoStage() {
     <div ref={box} className={'yt-stage' + (visible ? ' show' : '') + (showVideo ? '' : ' hidden-video')} aria-hidden={!visible}>
       <div className={'yt-slot' + (active === 0 ? ' active' : '')}><div ref={a} /></div>
       <div className={'yt-slot' + (active === 1 ? ' active' : '')}><div ref={b} /></div>
+      {!IS_APP && <button className="yt-fs" onClick={toggleVideoFullscreen} aria-label={full ? 'Exit full screen' : 'Full screen'} title={full ? 'Exit full screen (F)' : 'Full screen (F)'}>
+        <Icon name={full ? 'shrink' : 'expand'} size={18} />
+      </button>}
     </div>
   );
 }
@@ -130,6 +134,8 @@ export default function App() {
       else if (e.key === 'ArrowRight') seek(livePosition() + 10);
       else if (e.key === 'ArrowLeft') seek(Math.max(0, livePosition() - 10));
       else if (e.key.toLowerCase() === 'l' && getState().queue.length) setKaraoke((v) => !v);
+      else if (e.key.toLowerCase() === 'f' && !IS_APP) toggleVideoFullscreen();
+      else if (e.key === 'Escape' && document.querySelector('.yt-stage.fs')) toggleVideoFullscreen();
       else if (e.key === '/') { e.preventDefault(); setView('search'); }
     };
     addEventListener('keydown', k);
