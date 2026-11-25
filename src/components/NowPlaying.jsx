@@ -3,7 +3,12 @@ import Icon from './Icon.jsx';
 import Lyrics, { LyricsLang } from './Lyrics.jsx';
 import Visualizer from './Visualizer.jsx';
 import { SourceBadge } from './TrackRow.jsx';
-import { useStore, jumpTo, removeAt, moveItem, setAutoplay } from '../lib/store.js';
+import { useStore, jumpTo, removeAt, moveItem, setAutoplay, setShowVideo } from '../lib/store.js';
+
+export function VideoSwitch() {
+  const on = useStore((s) => s.showVideo);
+  return <label className="switch"><input type="checkbox" checked={on} onChange={(e) => setShowVideo(e.target.checked)} /><span />Show music videos</label>;
+}
 
 export function AutoplaySwitch({ label = 'Autoplay similar songs' }) {
   const on = useStore((s) => s.autoplay);
@@ -37,7 +42,9 @@ function Queue() {
 
 export default function NowPlaying({ open, onClose, onKaraoke }) {
   const t = useStore((s) => s.queue[s.index]);
-  const video = useStore((s) => s.videoVisible);
+  const hasVideo = useStore((s) => s.videoVisible);
+  const showVideo = useStore((s) => s.showVideo);
+  const video = hasVideo && showVideo;
   const playing = useStore((s) => s.playing);
   const [tab, setTab] = useState('lyrics');
   return (
@@ -59,6 +66,7 @@ export default function NowPlaying({ open, onClose, onKaraoke }) {
       <div className="tabs" role="tablist">
         <button role="tab" aria-selected={tab === 'lyrics'} onClick={() => setTab('lyrics')}>Lyrics</button>
         <button role="tab" aria-selected={tab === 'queue'} onClick={() => setTab('queue')}>Queue</button>
+        {hasVideo && <button className={'ib vid-toggle' + (showVideo ? ' on' : '')} onClick={() => setShowVideo(!showVideo)} aria-pressed={showVideo} aria-label={showVideo ? 'Hide video' : 'Show video'} title={showVideo ? 'Hide video' : 'Show video'}><Icon name="video" size={18} /></button>}
         <button className="ib" onClick={onKaraoke} aria-label="Full-screen lyrics"><Icon name="expand" size={18} /></button>
       </div>
       {tab === 'lyrics' && <LyricsLang />}

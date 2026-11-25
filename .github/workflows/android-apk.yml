@@ -27,6 +27,7 @@ jobs:
         env:
           VITE_YOUTUBE_API_KEY: ${{ secrets.VITE_YOUTUBE_API_KEY }}
           VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
+          VITE_APP_BUILD: ${{ github.run_number }}
       - run: npx cap sync android
       - name: Build debug APK
         working-directory: android

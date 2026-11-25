@@ -36,6 +36,7 @@ export function toggleVideoFullscreen() {
 function VideoStage() {
   const a = useRef(null), b = useRef(null), box = useRef(null);
   const visible = useStore((s) => s.videoVisible);
+  const showVideo = useStore((s) => s.showVideo);
   const active = useStore((s) => s.ytActive ?? 0);
   const [full, setFull] = useState(false);
   useEffect(() => { mountYouTube(a.current, b.current); }, []);
@@ -57,7 +58,7 @@ function VideoStage() {
       const el = box.current;
       if (isFull()) return;
       const karaokeOn = !!document.querySelector('.karaoke');
-      const onScreen = !karaokeOn && r && r.width > 150 && r.left < innerWidth - 50 && r.top < innerHeight && r.bottom > 0 && getComputedStyle(slot.closest('.now')).visibility !== 'hidden';
+      const onScreen = getState().showVideo && !karaokeOn && r && r.width > 150 && r.left < innerWidth - 50 && r.top < innerHeight && r.bottom > 0 && getComputedStyle(slot.closest('.now')).visibility !== 'hidden';
       if (onScreen) {
         el.classList.remove('mini');
         el.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${Math.max(200, r.height)}px`;
@@ -67,7 +68,7 @@ function VideoStage() {
     return () => cancelAnimationFrame(raf);
   }, []);
   return (
-    <div ref={box} className={'yt-stage' + (visible ? ' show' : '')} aria-hidden={!visible}>
+    <div ref={box} className={'yt-stage' + (visible ? ' show' : '') + (showVideo ? '' : ' hidden-video')} aria-hidden={!visible}>
       <div className={'yt-slot' + (active === 0 ? ' active' : '')}><div ref={a} /></div>
       <div className={'yt-slot' + (active === 1 ? ' active' : '')}><div ref={b} /></div>
       <button className="yt-fs" onClick={toggleVideoFullscreen} aria-label={full ? 'Exit full screen' : 'Full screen'} title={full ? 'Exit full screen (F)' : 'Full screen (F)'}>
