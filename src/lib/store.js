@@ -19,7 +19,7 @@ let state = {
   queue: saved.queue || [], index: saved.index ?? -1, playing: false, loading: false,
   position: 0, duration: 0, volume: saved.volume ?? 0.85, shuffle: false, repeat: 'off',
   accent: saved.themeColor && saved.themeColor !== 'auto' ? saved.themeColor : 'rgb(124 97 255)', lyrics: null, error: '', liked: saved.liked || [],
-  spotifyPremium: saved.spotifyPremium ?? false, themeColor: saved.themeColor || 'auto', lyricsMode: saved.lyricsMode || 'original', autoplay: saved.autoplay ?? true, showVideo: saved.showVideo ?? true, history: saved.history || [], playlists: saved.playlists || [], sleep: null, notice: '', eq: saved.eq || [0, 0, 0, 0, 0], eqPreset: saved.eqPreset || 'Flat', videoVisible: false, activeKind: null,
+  spotifyPremium: saved.spotifyPremium ?? false, themeColor: saved.themeColor || 'auto', lyricsMode: saved.lyricsMode || 'original', autoplay: saved.autoplay ?? true, showVideo: false, /* songs-only: YouTube player stays a small corner card */ history: saved.history || [], playlists: saved.playlists || [], sleep: null, notice: '', eq: saved.eq || [0, 0, 0, 0, 0], eqPreset: saved.eqPreset || 'Flat', videoVisible: false, activeKind: null,
 };
 const listeners = new Set();
 export const getState = () => state;
