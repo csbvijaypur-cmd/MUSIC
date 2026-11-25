@@ -11,10 +11,21 @@ export default function Visualizer({ mode = 'radial', className = '' }) {
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const N = mode === 'radial' ? 72 : 64;
     const data = new Uint8Array(128), level = new Float32Array(N);
-    let raf, t = 0;
-    const draw = () => {
+    let raf, t = 0, last = 0, visible = true, idleFrames = 0;
+    // Phones: 30 fps and no glow (canvas glow is very expensive on mobile GPUs)
+    const lite = matchMedia('(max-width: 900px), (pointer: coarse)').matches;
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0 });
+    io.observe(c);
+    const draw = (now = 0) => {
       raf = requestAnimationFrame(draw);
-      const dpr = devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+      if (!visible || document.hidden) return;
+      if (lite && now - last < 32) return;
+      last = now;
+      const { playing: isPlaying } = getState();
+      // Settled and paused: nothing changes, skip the work
+      if (!isPlaying) { if (++idleFrames > 40) return; } else idleFrames = 0;
+      const dpr = Math.min(devicePixelRatio || 1, lite ? 1.5 : 2), w = c.clientWidth, h = c.clientHeight;
+      if (!w || !h) return;
       if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
       g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
       const { playing, accent } = getState();
@@ -30,7 +41,7 @@ export default function Visualizer({ mode = 'radial', className = '' }) {
         } else v = 0.04;
         level[i] += (v - level[i]) * 0.25;
       }
-      g.fillStyle = accent; g.strokeStyle = accent; g.shadowColor = accent; g.shadowBlur = 14;
+      g.fillStyle = accent; g.strokeStyle = accent; g.shadowColor = accent; g.shadowBlur = lite ? 0 : 14;
       if (mode === 'radial') {
         const cx = w / 2, cy = h / 2, r0 = Math.min(w, h) * 0.36, len = Math.min(w, h) * 0.13;
         g.lineCap = 'round'; g.lineWidth = Math.max(2, (2 * Math.PI * r0) / N * 0.45);
@@ -51,7 +62,7 @@ export default function Visualizer({ mode = 'radial', className = '' }) {
       g.globalAlpha = 1;
     };
     draw();
-    return () => cancelAnimationFrame(raf);
+    return () => { cancelAnimationFrame(raf); io.disconnect(); };
   }, [mode]);
   return <canvas ref={ref} className={'viz ' + className} aria-hidden="true" />;
 }

@@ -53,14 +53,20 @@ function VideoStage() {
   // Float the (always-mounted) player over the Now Playing slot, or as a mini card.
   useLayoutEffect(() => {
     let raf;
+    let lastKey = '';
     const place = () => {
       raf = requestAnimationFrame(place);
+      // Nothing to place while no YouTube song is on
+      if (!getState().videoVisible) return;
       const slot = document.querySelector('.now-stage');
       const r = slot?.getBoundingClientRect();
       const el = box.current;
       if (isFull()) return;
       const karaokeOn = !!document.querySelector('.karaoke');
       const onScreen = getState().showVideo && !karaokeOn && r && r.width > 150 && r.left < innerWidth - 50 && r.top < innerHeight && r.bottom > 0 && getComputedStyle(slot.closest('.now')).visibility !== 'hidden';
+      const key = onScreen ? `${r.left|0},${r.top|0},${r.width|0},${r.height|0}` : 'mini';
+      if (key === lastKey) return; // avoid style writes every frame
+      lastKey = key;
       if (onScreen) {
         el.classList.remove('mini');
         el.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${Math.max(200, r.height)}px`;
