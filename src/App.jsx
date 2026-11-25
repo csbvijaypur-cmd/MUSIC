@@ -78,7 +78,7 @@ function VideoStage() {
       lastKey = key;
       if (onScreen) {
         el.classList.remove('mini');
-        el.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${Math.max(200, r.height)}px`;
+        el.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${IS_APP ? Math.max(200, r.width) : Math.max(200, r.height)}px`;
       } else { el.classList.add('mini'); el.style.cssText = ''; }
     };
     place();

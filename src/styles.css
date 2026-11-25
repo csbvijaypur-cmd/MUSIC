@@ -479,7 +479,13 @@ button, a, input, .row, .card, .col-card, .mood { touch-action: manipulation; }
 }
 
 /* App: the YouTube player sits in the Home hero art spot (rounded square, nothing covered) */
-.spot-video { width: max(210px, min(60vw, 260px)); aspect-ratio: 1; border-radius: 22px; background: #000; box-shadow: 0 0 0 1px var(--line), 0 20px 50px -20px var(--glow); }
+.spot-video { width: 200px; flex: none; aspect-ratio: 1; border-radius: 22px; background: #000; box-shadow: 0 0 0 1px var(--line), 0 20px 50px -20px var(--glow); }
 .yt-stage { border-radius: 18px; }
 /* When it has to float (other pages), keep content scrollable above it */
 .is-app.yt-mini .view { padding-bottom: 240px; }
+
+/* App: keep the YouTube player at YouTube's minimum size (200x200), like a small album tile */
+.is-app .now.has-video .now-stage { width: 200px; aspect-ratio: 1; margin: 8px auto; }
+.is-app .yt-stage { border-radius: 20px; }
+.is-app .yt-stage.mini { width: 200px; height: 200px; }
+.is-app.yt-mini .view { padding-bottom: 230px; }
