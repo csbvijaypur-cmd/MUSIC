@@ -93,3 +93,40 @@ export async function moodMix(m, count = 30) {
   }
   return out;
 }
+
+/**
+ * Daily Mix: a fresh playlist every day from the artists you play most,
+ * plus songs that sound like your latest pick. Cached for the day.
+ */
+export function dailyMixArtists(history) {
+  const tally = new Map();
+  history.forEach((t, i) => {
+    const a = (t.artist || '').split(/\s*(?:,|&| x | and | feat\.?|ft\.?)\s*/i)[0]?.replace(/\s*-\s*topic$|vevo$/i, '').trim();
+    if (a && a.length > 1) tally.set(a, (tally.get(a) || 0) + 1 + (i < 10 ? 0.5 : 0));
+  });
+  return [...tally].sort((a, b) => b[1] - a[1]).slice(0, 5).map((x) => x[0]);
+}
+export async function dailyMix(history, count = 30) {
+  const day = new Date().toDateString();
+  const artists = dailyMixArtists(history);
+  const sig = day + '|' + artists.join(',');
+  try { const c = JSON.parse(localStorage.getItem('dhun.daily') || 'null'); if (c?.sig === sig && c.tracks?.length) return c.tracks; } catch { /* ignore */ }
+  if (!artists.length) return [];
+  const lists = await Promise.all(artists.map((a) =>
+    get(`${API}/search?media=music&entity=song&attribute=artistTerm&limit=25&country=IN&term=${encodeURIComponent(a)}`).then(toTracks).catch(() => [])));
+  const extra = history[0] ? await similar(history[0], history.slice(0, 20), 10).catch(() => []) : [];
+  const pools = [...lists, extra].map(shuffle).filter((l) => l.length);
+  const recent = new Set(history.slice(0, 10).map((t) => norm(t.title)));
+  const seen = new Set();
+  const out = [];
+  for (let i = 0; out.length < count && pools.some((p) => p.length); i++) {
+    const p = pools[i % pools.length];
+    const x = p.shift();
+    if (!x) continue;
+    const k = norm(x.title);
+    if (!k || seen.has(k) || recent.has(k)) continue;
+    seen.add(k); out.push(x);
+  }
+  if (out.length) localStorage.setItem('dhun.daily', JSON.stringify({ sig, tracks: out }));
+  return out;
+}
