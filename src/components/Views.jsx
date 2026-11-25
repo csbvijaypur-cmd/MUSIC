@@ -196,7 +196,7 @@ export function Home({ go }) {
 
       <DailyMix />
 
-      {recent.length > 0 && <><h2 className="sec">Recently played</h2><div className="cards shelf">{recent.map((t) => <Card key={t.id} t={t} onClick={() => playTrack(t)} />)}</div></>}
+      {recent.length > 0 && <><h2 className="sec">Recently played</h2><div className="cards shelf" key={recent[0]?.id}>{recent.map((t) => <Card key={t.id} t={t} onClick={() => playTrack(t)} />)}</div></>}
 
       <Popular go={go} />
 

@@ -58,6 +58,12 @@ export function PlaylistSheet() {
   const playlists = useStore((s) => s.playlists);
   const [name, setName] = useState('');
   useEffect(() => { setName(''); }, [t]);
+  useEffect(() => {
+    if (!t) return;
+    const k = (e) => e.key === 'Escape' && pickPlaylistFor(null);
+    addEventListener('keydown', k);
+    return () => removeEventListener('keydown', k);
+  }, [t]);
   if (!t) return null;
   const close = () => pickPlaylistFor(null);
   return (
