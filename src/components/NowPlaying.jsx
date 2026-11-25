@@ -4,6 +4,7 @@ import Lyrics, { LyricsLang } from './Lyrics.jsx';
 import Visualizer from './Visualizer.jsx';
 import { SourceBadge } from './TrackRow.jsx';
 import { NowControls } from './PlayerBar.jsx';
+import { SleepButton, ShareButton, AddToPlaylistButton } from './Extras.jsx';
 import { useStore, jumpTo, removeAt, moveItem, setAutoplay, setShowVideo } from '../lib/store.js';
 
 export function VideoSwitch() {
@@ -68,8 +69,13 @@ export default function NowPlaying({ open, onClose, onKaraoke }) {
       <div className="tabs" role="tablist">
         <button role="tab" aria-selected={tab === 'lyrics'} onClick={() => setTab('lyrics')}>Lyrics</button>
         <button role="tab" aria-selected={tab === 'queue'} onClick={() => setTab('queue')}>Queue</button>
+        <span className="tab-tools">
+        {t && <AddToPlaylistButton t={t} />}
+        {t && <ShareButton t={t} />}
+        <SleepButton />
         {hasVideo && <button className={'ib vid-toggle' + (showVideo ? ' on' : '')} onClick={() => setShowVideo(!showVideo)} aria-pressed={showVideo} aria-label={showVideo ? 'Hide video' : 'Show video'} title={showVideo ? 'Hide video' : 'Show video'}><Icon name="video" size={18} /></button>}
         <button className="ib" onClick={onKaraoke} aria-label="Full-screen lyrics"><Icon name="expand" size={18} /></button>
+        </span>
       </div>
       {tab === 'lyrics' && <LyricsLang />}
       <div className="now-body">{tab === 'lyrics' ? <Lyrics /> : <Queue />}</div>

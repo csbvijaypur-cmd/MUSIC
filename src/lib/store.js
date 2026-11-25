@@ -19,7 +19,7 @@ let state = {
   queue: saved.queue || [], index: saved.index ?? -1, playing: false, loading: false,
   position: 0, duration: 0, volume: saved.volume ?? 0.85, shuffle: false, repeat: 'off',
   accent: saved.themeColor && saved.themeColor !== 'auto' ? saved.themeColor : 'rgb(124 97 255)', lyrics: null, error: '', liked: saved.liked || [],
-  spotifyPremium: saved.spotifyPremium ?? false, themeColor: saved.themeColor || 'auto', lyricsMode: saved.lyricsMode || 'original', autoplay: saved.autoplay ?? true, showVideo: saved.showVideo ?? true, eq: saved.eq || [0, 0, 0, 0, 0], eqPreset: saved.eqPreset || 'Flat', videoVisible: false, activeKind: null,
+  spotifyPremium: saved.spotifyPremium ?? false, themeColor: saved.themeColor || 'auto', lyricsMode: saved.lyricsMode || 'original', autoplay: saved.autoplay ?? true, showVideo: saved.showVideo ?? true, history: saved.history || [], playlists: saved.playlists || [], sleep: null, notice: '', eq: saved.eq || [0, 0, 0, 0, 0], eqPreset: saved.eqPreset || 'Flat', videoVisible: false, activeKind: null,
 };
 const listeners = new Set();
 export const getState = () => state;
@@ -29,8 +29,8 @@ export function setState(patch) {
 }
 export const useStore = (sel) => useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), () => sel(state));
 listeners.add(() => {
-  const { queue, index, volume, liked, spotifyPremium, eq, eqPreset, themeColor, lyricsMode, autoplay, showVideo } = state;
-  safeSet('dhun.state', JSON.stringify({ queue: queue.slice(-200), index: Math.max(-1, index - Math.max(0, queue.length - 200)), volume, liked, spotifyPremium, eq, eqPreset, themeColor, lyricsMode, autoplay, showVideo }));
+  const { queue, index, volume, liked, spotifyPremium, eq, eqPreset, themeColor, lyricsMode, autoplay, showVideo, history, playlists } = state;
+  safeSet('dhun.state', JSON.stringify({ queue: queue.slice(-200), index: Math.max(-1, index - Math.max(0, queue.length - 200)), volume, liked, spotifyPremium, eq, eqPreset, themeColor, lyricsMode, autoplay, showVideo, history, playlists }));
 });
 const current = () => state.queue[state.index];
 
@@ -157,7 +157,7 @@ async function start(from = 0) {
   if (!t) return;
   const my = ++token;
   setState({ loading: true, position: from, duration: t.duration || 0, error: '', lyrics: null });
-  theme(t); lyricsFor(t); mediaSession(t); autoExtend();
+  theme(t); lyricsFor(t); mediaSession(t); autoExtend(); remember(t);
   try {
     const p = await resolvePlayable(t);
     if (my !== token) return;
@@ -197,6 +197,7 @@ function onSpotifyState(s) {
 let spPos = { at: 0, pos: 0, paused: true };
 
 function onEnded() {
+  if (state.sleep?.endOfSong) { setState({ sleep: null, playing: false }); notify('Sleep timer: good night 🌙'); return; }
   if (state.repeat === 'one') return start(0);
   next(true);
 }
@@ -314,6 +315,7 @@ export const livePosition = position;
 
 setInterval(() => {
   if (!state.playing) return;
+  if (state.sleep?.at && Date.now() >= state.sleep.at) { setState({ sleep: null }); toggle(); notify('Sleep timer: good night 🌙'); return; }
   const pos = position();
   const dur = state.activeKind === 'audius' ? els[elActive].duration || state.duration : state.duration;
   if (state.activeKind === 'demo' && pos >= dur) { synth.stop(); return onEnded(); }
@@ -362,4 +364,46 @@ function mediaSession(t) {
   navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.artist, album: t.album, artwork: t.art?.startsWith('http') ? [{ src: t.art, sizes: '512x512' }] : [] });
   const h = { play: toggle, pause: toggle, nexttrack: () => next(), previoustrack: prev, seekto: (d) => seek(d.seekTime) };
   for (const [k, fn] of Object.entries(h)) { try { navigator.mediaSession.setActionHandler(k, fn); } catch {} }
+}
+
+// ---------------- small notices (toast) ----------------
+export function notify(msg) {
+  setState({ notice: msg });
+  setTimeout(() => state.notice === msg && setState({ notice: '' }), 3000);
+}
+
+// ---------------- recently played ----------------
+const slim = (t) => { const { radio, ...rest } = t; return rest; };
+function remember(t) {
+  if (!t || t.source === 'demo') return;
+  setState((s) => ({ history: [slim(t), ...s.history.filter((x) => x.id !== t.id)].slice(0, 50) }));
+}
+export const clearHistory = () => setState({ history: [] });
+
+// ---------------- playlists ----------------
+export function createPlaylist(name, first) {
+  const p = { id: 'pl' + Date.now().toString(36), name: name.trim() || 'My playlist', tracks: first ? [slim(first)] : [] };
+  setState((s) => ({ playlists: [...s.playlists, p] }));
+  if (first) notify(`Added to ${p.name}`);
+  return p.id;
+}
+export function addToPlaylist(pid, t) {
+  const p = state.playlists.find((x) => x.id === pid);
+  if (!p) return;
+  if (p.tracks.some((x) => x.id === t.id)) return notify(`Already in ${p.name}`);
+  setState((s) => ({ playlists: s.playlists.map((x) => (x.id === pid ? { ...x, tracks: [...x.tracks, slim(t)] } : x)) }));
+  notify(`Added to ${p.name}`);
+}
+export const removeFromPlaylist = (pid, tid) => setState((s) => ({ playlists: s.playlists.map((x) => (x.id === pid ? { ...x, tracks: x.tracks.filter((t) => t.id !== tid) } : x)) }));
+export const renamePlaylist = (pid, name) => setState((s) => ({ playlists: s.playlists.map((x) => (x.id === pid ? { ...x, name: name.trim() || x.name } : x)) }));
+export const deletePlaylist = (pid) => setState((s) => ({ playlists: s.playlists.filter((x) => x.id !== pid) }));
+/** Song waiting for the "Add to playlist" sheet */
+export const pickPlaylistFor = (t) => setState({ pickFor: t || null });
+
+// ---------------- sleep timer ----------------
+export function setSleep(min) {
+  if (!min) { setState({ sleep: null }); return notify('Sleep timer off'); }
+  if (min === 'end') { setState({ sleep: { endOfSong: true } }); return notify('Music stops after this song'); }
+  setState({ sleep: { at: Date.now() + min * 60000, min } });
+  notify(`Music stops in ${min} min`);
 }

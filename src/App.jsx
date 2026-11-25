@@ -4,8 +4,9 @@ import PlayerBar from './components/PlayerBar.jsx';
 import NowPlaying from './components/NowPlaying.jsx';
 import Karaoke from './components/Karaoke.jsx';
 import Equalizer from './components/Equalizer.jsx';
+import { PlaylistSheet } from './components/Extras.jsx';
 import { Home, Search, Library, Settings } from './components/Views.jsx';
-import { useStore, mountYouTube, toggle, seek, next, livePosition, getState } from './lib/store.js';
+import { useStore, setState, mountYouTube, toggle, seek, next, livePosition, getState } from './lib/store.js';
 import * as SP from './lib/spotify.js';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
@@ -87,8 +88,14 @@ export default function App() {
   const [eq, setEq] = useState(false);
   const accent = useStore((s) => s.accent);
   const error = useStore((s) => s.error);
+  const notice = useStore((s) => s.notice);
   const art = useStore((s) => s.queue[s.index]?.art);
 
+  // Shared song links: ?play=Song%20Artist opens search for it
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get('play');
+    if (q) { go('search', q); history.replaceState(null, '', location.pathname); }
+  }, []);
   useEffect(() => { SP.handleRedirect().then((ok) => ok && setView('settings')).catch(() => {}); }, []);
   useEffect(() => { document.documentElement.style.setProperty('--accent', accent); document.querySelector('meta[name=theme-color]')?.setAttribute('content', '#07070d'); }, [accent]);
 
@@ -108,6 +115,7 @@ export default function App() {
         if (u.karaoke) setKaraoke(false);
         return;
       }
+      if (getState().pickFor) return setState({ pickFor: null });
       if (u.karaoke) return setKaraoke(false);
       if (u.eq) return setEq(false);
       if (u.nowOpen) return setNowOpen(false);
@@ -162,7 +170,8 @@ export default function App() {
       <VideoStage />
       {karaoke && <Karaoke onClose={closeKaraoke} />}
       {eq && <Equalizer onClose={() => setEq(false)} />}
-      {error && <div className="toast" role="status">{error}</div>}
+      {(error || notice) && <div className="toast" role="status">{error || notice}</div>}
+      <PlaylistSheet />
     </div>
   );
 }

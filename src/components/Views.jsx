@@ -9,7 +9,7 @@ import * as YT from '../lib/youtube.js';
 import * as SP from '../lib/spotify.js';
 import { getConfig, saveConfig } from '../lib/config.js';
 import { VERSION, checkUpdate, downloadUpdate } from '../lib/update.js';
-import { useStore, setState, playList, playTrack, toggle, setThemeColor } from '../lib/store.js';
+import { useStore, setState, playList, playTrack, toggle, setThemeColor, createPlaylist, renamePlaylist, deletePlaylist, removeFromPlaylist, clearHistory, notify } from '../lib/store.js';
 
 const greet = () => { const h = new Date().getHours(); return h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
 
@@ -39,12 +39,38 @@ function Card({ t, onClick }) {
   );
 }
 
+function Moods() {
+  const [busy, setBusy] = useState(null);
+  const play = async (m) => {
+    if (busy) return;
+    setBusy(m.id);
+    try {
+      const list = await CT.moodMix(m);
+      if (list.length) playList(list, 0); else notify('Couldn’t load this mix');
+    } catch { notify('Can’t connect. Check your internet.'); }
+    setBusy(null);
+  };
+  return (
+    <>
+      <h2 className="sec">Mood mixes</h2>
+      <div className="moods">
+        {CT.MOODS.map((m) => (
+          <button key={m.id} className={'mood' + (busy === m.id ? ' busy' : '')} style={{ '--c': m.c }} onClick={() => play(m)} aria-label={`Play ${m.name} mix`}>
+            <span className="mood-emoji" aria-hidden="true">{m.emoji}</span><b>{m.name}</b>
+            {busy === m.id ? <span className="spinner" /> : <span className="mood-play"><Icon name="play" size={16} /></span>}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
 export function Home({ go }) {
   const [trend, setTrend] = useState(null);
-  const queue = useStore((s) => s.queue);
+  const history = useStore((s) => s.history);
   const cur = useStore((s) => s.queue[s.index]);
   const playing = useStore((s) => s.playing);
-  const recent = useMemo(() => queue.filter((t) => t.source !== 'demo').slice(-8).reverse(), [queue]);
+  const recent = useMemo(() => history.slice(0, 10), [history]);
   useEffect(() => { AU.trending().then(setTrend).catch(() => setTrend([])); }, []);
   const feat = cur || DEMO_TRACKS[0];
   const playFeat = () => (cur ? toggle() : playList(DEMO_TRACKS, 0));
@@ -69,7 +95,9 @@ export function Home({ go }) {
         </div>
       </section>
 
-      {recent.length > 0 && <><h2 className="sec">Recent</h2><div className="cards">{recent.map((t) => <Card key={t.id} t={t} onClick={() => playTrack(t)} />)}</div></>}
+      <Moods />
+
+      {recent.length > 0 && <><h2 className="sec">Recently played</h2><div className="cards">{recent.map((t) => <Card key={t.id} t={t} onClick={() => playTrack(t)} />)}</div></>}
 
       <h2 className="sec">Demo</h2>
       <div className="cards">{DEMO_TRACKS.map((t, i) => <Card key={t.id} t={t} onClick={() => playList(DEMO_TRACKS, i)} />)}</div>
@@ -134,15 +162,39 @@ export function Search({ initial = '' }) {
 
 export function Library() {
   const liked = useStore((s) => s.liked);
+  const playlists = useStore((s) => s.playlists);
+  const history = useStore((s) => s.history);
+  const [open, setOpen] = useState('liked');
+  const [name, setName] = useState('');
+  const pl = playlists.find((p) => p.id === open);
+  const tabs = [['liked', 'Liked songs', liked.length], ...playlists.map((p) => [p.id, p.name, p.tracks.length]), ['recent', 'Recently played', history.length]];
+  const list = open === 'liked' ? liked : open === 'recent' ? history : pl?.tracks || [];
+  const title = open === 'liked' ? 'Liked songs' : open === 'recent' ? 'Recently played' : pl?.name;
+  if (!pl && !['liked', 'recent'].includes(open)) setTimeout(() => setOpen('liked'));
   return (
     <div className="view">
+      <h1 className="lib-title">Your library</h1>
+      <div className="lib-tabs">
+        {tabs.map(([id, l, n]) => <button key={id} className={'chip' + (open === id ? ' on' : '')} onClick={() => setOpen(id)}>{l} <small>{n}</small></button>)}
+        <form className="new-pl" onSubmit={(e) => { e.preventDefault(); if (!name.trim()) return; setOpen(createPlaylist(name)); setName(''); }}>
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="+ New playlist" aria-label="New playlist name" />
+          {name.trim() && <button className="btn primary">Create</button>}
+        </form>
+      </div>
       <section className="lib-head">
-        <div className="lib-art"><Icon name="heart" size={56} fill /></div>
-        <div><p className="kicker">Playlist</p><h1>Liked songs</h1><p className="muted">{liked.length} songs</p>
-          {liked.length > 0 && <button className="btn primary" onClick={() => playList(liked, 0)}><Icon name="play" size={18} /> Play all</button>}</div>
+        <div className="lib-art">{open === 'liked' ? <Icon name="heart" size={56} fill /> : open === 'recent' ? <Icon name="clock" size={56} /> : list[0]?.art ? <img src={list[0].art} alt="" /> : <Icon name="lyrics" size={56} />}</div>
+        <div><p className="kicker">Playlist</p><h1>{title}</h1><p className="muted">{list.length} songs</p>
+          <div className="row-btns">
+            {list.length > 0 && <button className="btn primary" onClick={() => playList(list, 0)}><Icon name="play" size={18} /> Play all</button>}
+            {list.length > 1 && <button className="btn" onClick={() => { const l = [...list].sort(() => Math.random() - 0.5); playList(l, 0); }}><Icon name="shuffle" size={18} /> Shuffle</button>}
+            {pl && <button className="btn" onClick={() => { const n = prompt('Playlist name', pl.name); if (n) renamePlaylist(pl.id, n); }}>Rename</button>}
+            {pl && <button className="btn" onClick={() => { if (confirm(`Delete "${pl.name}"?`)) { deletePlaylist(pl.id); setOpen('liked'); } }}>Delete</button>}
+            {open === 'recent' && list.length > 0 && <button className="btn" onClick={clearHistory}>Clear</button>}
+          </div>
+        </div>
       </section>
-      {liked.length ? <div className="list">{liked.map((t, i) => <TrackRow key={t.id} t={t} i={i} onPlay={() => playList(liked, i)} />)}</div>
-        : <p className="muted center">Tap ♥ on any song to save it here.</p>}
+      {list.length ? <div className="list">{list.map((t, i) => <TrackRow key={t.id} t={t} i={i} onPlay={() => playList(list, i)} onRemove={pl ? () => removeFromPlaylist(pl.id, t.id) : undefined} />)}</div>
+        : <p className="muted center">{open === 'liked' ? 'Tap ♥ on any song to save it here.' : open === 'recent' ? 'Songs you play show up here.' : 'Add songs with the ≡+ button on any song.'}</p>}
     </div>
   );
 }
