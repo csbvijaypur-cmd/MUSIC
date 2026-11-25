@@ -477,3 +477,9 @@ button, a, input, .row, .card, .col-card, .mood { touch-action: manipulation; }
   .spot .orb i { animation-duration: 14s; }
   .card-play, .col-art img { transition: none; }
 }
+
+/* App: the YouTube player sits in the Home hero art spot (rounded square, nothing covered) */
+.spot-video { width: max(210px, min(60vw, 260px)); aspect-ratio: 1; border-radius: 22px; background: #000; box-shadow: 0 0 0 1px var(--line), 0 20px 50px -20px var(--glow); }
+.yt-stage { border-radius: 18px; }
+/* When it has to float (other pages), keep content scrollable above it */
+.is-app.yt-mini .view { padding-bottom: 240px; }
