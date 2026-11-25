@@ -6,7 +6,7 @@ export const isSpotifyLink = (s) => /open\.spotify\.com\/(?:intl-[a-z]+\/)?(play
 
 export async function fetchSpotifyPlaylist(link) {
   let res;
-  try { res = await fetch(`${API}?url=${encodeURIComponent(link.trim())}`); }
+  try { res = await fetch(`${API}?v=2&url=${encodeURIComponent(link.trim())}`); }
   catch { throw new Error('Can’t connect. Check your internet.'); }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Import failed');
