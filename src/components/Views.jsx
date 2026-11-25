@@ -9,7 +9,8 @@ import * as YT from '../lib/youtube.js';
 import * as SP from '../lib/spotify.js';
 import { getConfig, saveConfig, IS_APP } from '../lib/config.js';
 import { VERSION, checkUpdate, downloadUpdate } from '../lib/update.js';
-import { useStore, setState, playList, playTrack, toggle, setThemeColor, createPlaylist, renamePlaylist, deletePlaylist, removeFromPlaylist, clearHistory, notify } from '../lib/store.js';
+import { fetchSpotifyPlaylist, isSpotifyLink } from '../lib/spotifyImport.js';
+import { useStore, setState, playList, playTrack, toggle, setThemeColor, createPlaylist, importPlaylist, renamePlaylist, deletePlaylist, removeFromPlaylist, clearHistory, notify } from '../lib/store.js';
 
 const greet = () => { const h = new Date().getHours(); return h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
 
@@ -160,6 +161,28 @@ export function Search({ initial = '' }) {
   );
 }
 
+function SpotifyImport({ onDone }) {
+  const [link, setLink] = useState('');
+  const [st, setSt] = useState({});
+  const go = async (e) => {
+    e.preventDefault();
+    if (!isSpotifyLink(link)) return setSt({ err: 'Paste a Spotify playlist or album link (Share → Copy link)' });
+    setSt({ busy: true });
+    try {
+      const { name, tracks } = await fetchSpotifyPlaylist(link);
+      onDone(importPlaylist(name, tracks)); setLink(''); setSt({});
+    } catch (er) { setSt({ err: er.message }); }
+  };
+  return (
+    <form className="sp-import glass" onSubmit={go}>
+      <span className="sp-logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="11" fill="#1ed760" /><path d="M6.5 9.5c3.8-1.1 7.9-.7 11 1.1M7.2 12.6c3.1-.9 6.4-.5 8.9.9M7.9 15.5c2.5-.6 4.9-.3 6.9.8" stroke="#000" strokeWidth="1.6" fill="none" strokeLinecap="round" /></svg></span>
+      <input value={link} onChange={(e) => { setLink(e.target.value); setSt({}); }} placeholder="Paste Spotify playlist link to import" aria-label="Spotify playlist link" />
+      <button className="btn primary" disabled={!link.trim() || st.busy}>{st.busy ? <span className="spinner" /> : 'Import'}</button>
+      {st.err && <p className="sp-err">{st.err}</p>}
+    </form>
+  );
+}
+
 export function Library() {
   const liked = useStore((s) => s.liked);
   const playlists = useStore((s) => s.playlists);
@@ -174,6 +197,7 @@ export function Library() {
   return (
     <div className="view">
       <h1 className="lib-title">Your library</h1>
+      <SpotifyImport onDone={setOpen} />
       <div className="lib-tabs">
         {tabs.map(([id, l, n]) => <button key={id} className={'chip' + (open === id ? ' on' : '')} onClick={() => setOpen(id)}>{l} <small>{n}</small></button>)}
         <form className="new-pl" onSubmit={(e) => { e.preventDefault(); if (!name.trim()) return; setOpen(createPlaylist(name)); setName(''); }}>

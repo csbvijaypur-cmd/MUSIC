@@ -387,6 +387,12 @@ export function createPlaylist(name, first) {
   if (first) notify(`Added to ${p.name}`);
   return p.id;
 }
+export function importPlaylist(name, tracks) {
+  const p = { id: 'pl' + Date.now().toString(36), name: name || 'Spotify playlist', tracks: tracks.map(slim), from: 'spotify' };
+  setState((s) => ({ playlists: [...s.playlists, p] }));
+  notify(`Imported ${tracks.length} songs`);
+  return p.id;
+}
 export function addToPlaylist(pid, t) {
   const p = state.playlists.find((x) => x.id === pid);
   if (!p) return;
