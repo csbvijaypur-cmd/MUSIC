@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { useSwipe } from '../lib/swipe.js';
 import Icon from './Icon.jsx';
 import Visualizer from './Visualizer.jsx';
 import { SleepButton } from './Extras.jsx';
@@ -58,12 +60,14 @@ export default function PlayerBar({ onKaraoke, onEq, onOpenNow }) {
   const repeat = useStore((s) => s.repeat);
   const liked = useStore((s) => !!t && s.liked.some((x) => x.id === t.id));
   const pct = dur ? Math.min(100, (pos / dur) * 100) : 0;
+  const trackRef = useRef(null);
+  useSwipe(trackRef, { left: () => next(), right: () => prev() });
 
   return (
     <footer className="bar glass">
       <Visualizer mode="bars" className="bar-viz" />
       <div className="bar-progress" style={{ width: pct + '%' }} aria-hidden="true" />
-      <button className="bar-track" onClick={onOpenNow} disabled={!t} aria-label="Now playing">
+      <button ref={trackRef} className="bar-track" onClick={onOpenNow} disabled={!t} aria-label="Now playing">
         <span className={'bar-art' + (playing ? ' spin' : '')}>{t?.art && <img src={t.artSmall || t.art} alt="" />}</span>
         <span className="bar-meta">
           <span className="bar-title">{t ? t.title : 'Nothing playing'}</span>

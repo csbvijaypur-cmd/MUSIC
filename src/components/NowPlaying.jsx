@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { useSwipe } from '../lib/swipe.js';
 import Icon from './Icon.jsx';
 import Lyrics, { LyricsLang } from './Lyrics.jsx';
 import Visualizer from './Visualizer.jsx';
@@ -6,7 +7,7 @@ import { SourceBadge } from './TrackRow.jsx';
 import { IS_APP } from '../lib/config.js';
 import { NowControls } from './PlayerBar.jsx';
 import { SleepButton, ShareButton, AddToPlaylistButton } from './Extras.jsx';
-import { useStore, jumpTo, removeAt, moveItem, setAutoplay, setShowVideo } from '../lib/store.js';
+import { useStore, next, prev, jumpTo, removeAt, moveItem, setAutoplay, setShowVideo } from '../lib/store.js';
 
 export function VideoSwitch() {
   const on = useStore((s) => s.showVideo);
@@ -50,9 +51,13 @@ export default function NowPlaying({ open, onClose, onKaraoke }) {
   const video = hasVideo && (showVideo || IS_APP); // in the app the player sits where the cover is
   const playing = useStore((s) => s.playing);
   const [tab, setTab] = useState('lyrics');
+  const swipeRef = useRef(null);
+  useSwipe(swipeRef, { left: () => next(), right: () => prev(), down: onClose });
   return (
     <aside className={'now glass' + (open ? ' open' : '') + (video ? ' has-video' : '')} aria-label="Now playing">
       <button className="ib now-close" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
+      <div className="now-swipe" ref={swipeRef}>
+      <span className="grabber" aria-hidden="true" />
       <div className="now-stage">
         {/* The YouTube player is positioned over this slot when a YouTube song plays */}
         {!video && (
@@ -65,6 +70,7 @@ export default function NowPlaying({ open, onClose, onKaraoke }) {
       <div className="now-meta">
         <h2 key={t?.id}>{t?.title || 'Dhun'}</h2>
         <p>{t ? <><SourceBadge source={t.source} /> {t.artist}{t.matchedFrom ? ' · via YouTube' : ''}</> : 'Nothing playing'}</p>
+      </div>
       </div>
       {t && <NowControls />}
       <div className="tabs" role="tablist">

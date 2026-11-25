@@ -127,6 +127,37 @@ function Moods() {
   );
 }
 
+function DailyMix() {
+  const history = useStore((s) => s.history);
+  const [busy, setBusy] = useState(false);
+  const artists = useMemo(() => CT.dailyMixArtists(history), [history]);
+  if (history.length < 3 || !artists.length) return null;
+  const play = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const list = await CT.dailyMix(history);
+      if (list.length) playList(list, 0); else notify('Couldn’t make your mix');
+    } catch { notify('Can’t connect. Check your internet.'); }
+    setBusy(false);
+  };
+  const arts = history.filter((t) => t.art).slice(0, 4);
+  return (
+    <>
+      <h2 className="sec">Made for you</h2>
+      <button className="daily" onClick={play} aria-label="Play Daily Mix">
+        <span className="daily-art" aria-hidden="true">{arts.map((t, i) => <img key={i} src={t.artSmall || t.art} alt="" loading="lazy" />)}</span>
+        <span className="daily-info">
+          <small>{new Date().toLocaleDateString(undefined, { weekday: 'long' })} · fresh today</small>
+          <b>Daily Mix</b>
+          <span>{artists.slice(0, 3).join(', ')} and more</span>
+        </span>
+        <span className="daily-play">{busy ? <span className="spinner" /> : <Icon name="play" size={22} />}</span>
+      </button>
+    </>
+  );
+}
+
 export function Home({ go }) {
   const [trend, setTrend] = useState(null);
   const history = useStore((s) => s.history);
@@ -140,7 +171,10 @@ export function Home({ go }) {
   return (
     <div className="view">
       <div className="home-top">
-        <p className="hello">{greet()}</p>
+        <div className="hello-wrap">
+          <span className="brand" aria-hidden="true"><svg viewBox="0 0 64 64" width="22" height="22"><path d="M6 38c6 0 6-12 12-12s6 20 12 20 6-28 12-28 6 20 12 20" fill="none" stroke="var(--accent)" strokeWidth="7" strokeLinecap="round" /></svg>DHUN</span>
+          <p className="hello">{greet()}</p>
+        </div>
         <QuickBar go={go} />
       </div>
 
@@ -159,19 +193,21 @@ export function Home({ go }) {
         </div>
       </section>
 
+      <DailyMix />
+
+      {recent.length > 0 && <><h2 className="sec">Recently played</h2><div className="cards shelf">{recent.map((t) => <Card key={t.id} t={t} onClick={() => playTrack(t)} />)}</div></>}
+
       <Popular go={go} />
 
       <Moods />
 
-      {recent.length > 0 && <><h2 className="sec">Recently played</h2><div className="cards">{recent.map((t) => <Card key={t.id} t={t} onClick={() => playTrack(t)} />)}</div></>}
-
-      <h2 className="sec">Demo</h2>
-      <div className="cards">{DEMO_TRACKS.map((t, i) => <Card key={t.id} t={t} onClick={() => playList(DEMO_TRACKS, i)} />)}</div>
-
       <h2 className="sec">Trending</h2>
       {trend === null ? <div className="skel-grid">{Array.from({ length: 6 }, (_, i) => <span key={i} className="skel" />)}</div>
-        : trend.length ? <div className="cards">{trend.map((t, i) => <Card key={t.id} t={t} onClick={() => playList(trend, i)} />)}</div>
+        : trend.length ? <div className="cards shelf">{trend.map((t, i) => <Card key={t.id} t={t} onClick={() => playList(trend, i)} />)}</div>
           : <p className="muted">Couldn’t load</p>}
+
+      <h2 className="sec">Demo</h2>
+      <div className="cards shelf">{DEMO_TRACKS.map((t, i) => <Card key={t.id} t={t} onClick={() => playList(DEMO_TRACKS, i)} />)}</div>
     </div>
   );
 }
