@@ -73,3 +73,23 @@ export default function Lyrics({ big = false }) {
     </div>
   );
 }
+
+/** One line of lyrics (the one being sung now), for the compact Now Playing view. */
+export function LyricLine({ onOpen }) {
+  const lyrics = useStore((s) => s.lyrics);
+  const pos = useStore((s) => s.position);
+  const mode = useStore((s) => s.lyricsMode);
+  const lines = lyrics?.synced?.length ? lyrics.synced : null;
+  let text = '';
+  if (lyrics?.loading) text = 'Finding lyrics…';
+  else if (lines) { let a = -1; for (let i = 0; i < lines.length; i++) if (lines[i].time <= pos + 0.25) a = i; else break; text = a < 0 ? '♪' : (lines[a].text || '♪'); }
+  else if (lyrics?.plain) text = lyrics.plain.split('\n').find((l) => l.trim()) || '';
+  else text = lyrics ? 'No lyrics found' : '';
+  if (mode === 'roman' && text) text = toRoman(text);
+  return (
+    <button className="lyr-strip" onClick={onOpen} aria-label="Show full lyrics">
+      <span className="lyr-line" key={text}>{text || '♪'}</span>
+      <span className="lyr-open">Lyrics</span>
+    </button>
+  );
+}

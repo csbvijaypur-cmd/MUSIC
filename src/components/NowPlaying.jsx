@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSwipe } from '../lib/swipe.js';
 import Icon from './Icon.jsx';
-import Lyrics, { LyricsLang } from './Lyrics.jsx';
+import Lyrics, { LyricsLang, LyricLine } from './Lyrics.jsx';
 import Visualizer from './Visualizer.jsx';
 import { SourceBadge } from './TrackRow.jsx';
 import { IS_APP } from '../lib/config.js';
@@ -23,11 +23,13 @@ function Queue() {
   const queue = useStore((s) => s.queue);
   const index = useStore((s) => s.index);
   const [drag, setDrag] = useState(null);
+  const list = useRef(null);
+  useEffect(() => { const el = list.current?.querySelector('li.cur'); if (el && list.current) list.current.scrollTop = el.offsetTop - list.current.offsetTop - 4; }, [index]);
   if (!queue.length) return <div className="lyr-empty">Queue is empty</div>;
   return (
     <>
     <div className="q-auto"><AutoplaySwitch /></div>
-    <ol className="queue">
+    <ol className="queue" ref={list}>
       {queue.map((t, i) => (
         <li key={t.id + i} className={i === index ? 'cur' : i < index ? 'past' : ''} draggable
           onDragStart={() => setDrag(i)} onDragOver={(e) => e.preventDefault()} onDrop={() => { if (drag !== null) moveItem(drag, i); setDrag(null); }}>
@@ -50,7 +52,7 @@ export default function NowPlaying({ open, onClose, onKaraoke }) {
   const showVideo = useStore((s) => s.showVideo);
   const video = hasVideo && (showVideo || IS_APP); // in the app the player sits where the cover is
   const playing = useStore((s) => s.playing);
-  const [tab, setTab] = useState('lyrics');
+  const [tab, setTab] = useState(() => (matchMedia('(max-width: 900px)').matches ? 'queue' : 'lyrics'));
   const swipeRef = useRef(null);
   useSwipe(swipeRef, { left: () => next(), right: () => prev(), down: onClose });
   return (
@@ -73,9 +75,10 @@ export default function NowPlaying({ open, onClose, onKaraoke }) {
       </div>
       </div>
       {t && <NowControls />}
+      {t && tab !== 'lyrics' && <LyricLine onOpen={() => setTab('lyrics')} />}
       <div className="tabs" role="tablist">
         <button role="tab" aria-selected={tab === 'lyrics'} onClick={() => setTab('lyrics')}>Lyrics</button>
-        <button role="tab" aria-selected={tab === 'queue'} onClick={() => setTab('queue')}>Queue</button>
+        <button role="tab" aria-selected={tab === 'queue'} onClick={() => setTab('queue')}>Up next</button>
         <span className="tab-tools">
         {t && <AddToPlaylistButton t={t} />}
         {t && <ShareButton t={t} />}

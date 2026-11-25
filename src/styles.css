@@ -629,3 +629,18 @@ button, .card, .col-card, .mood, .track-row { touch-action: manipulation; }
   .now-close { top: calc(10px + env(safe-area-inset-top)); left: 10px; right: auto; }
   .tabs { border-bottom-color: rgb(255 255 255 / 0.06); }
 }
+
+/* v1.0.31: one-line lyrics strip + roomier Up next */
+.lyr-strip { display: none; }
+@media (max-width: 900px) {
+  .lyr-strip { display: flex; align-items: center; gap: 10px; width: 100%; margin: 6px 0 2px; padding: 10px 12px; border-radius: 14px; text-align: left;
+    background: rgb(255 255 255 / 0.05); border: 1px solid var(--line); }
+  .lyr-line { flex: 1; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; text-shadow: 0 0 14px var(--glow); animation: fade 0.3s; }
+  .lyr-open { flex: none; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 99px; background: var(--accent); color: #07070d; }
+  .now-stage { width: min(100%, 36vh); }
+  .now:has(.lyr-strip) .now-meta { padding-top: 8px; }
+  .queue { padding-top: 6px; }
+  .q-auto { padding-bottom: 6px; }
+}
+.switch { display: flex; }
+@media (max-width: 900px) { .now-stage { width: min(100%, 30vh); } }
