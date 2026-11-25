@@ -76,9 +76,9 @@ code, kbd { background: var(--glass-2); padding: 2px 6px; border-radius: 6px; fo
 .spot .orb { position: absolute; inset: 0; }
 .spot .orb i { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--accent) 60%, transparent); box-shadow: 0 0 40px -8px var(--glow), inset 0 0 40px -10px var(--glow); animation: orb 9s linear infinite; }
 .spot .orb i:nth-child(2) { inset: 8%; border-style: dashed; animation-duration: 6s; animation-direction: reverse; }
-.spot-info { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.spot-info { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
 .spot-tag { font-size: 13px; font-weight: 600; color: var(--accent); }
-.spot-info h1 { font-size: clamp(30px, 4.4vw, 52px); font-weight: 800; letter-spacing: -0.02em; }
+.spot-info h1 { font-size: clamp(26px, 3.6vw, 48px); overflow-wrap: anywhere; font-weight: 800; letter-spacing: -0.02em; }
 .spot-info p { margin: 0 0 14px; color: var(--mute); font-size: 16px; }
 @keyframes orb { to { transform: rotate(360deg); } }
 .btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 999px; background: var(--glass-2); border: 1px solid var(--line); font-weight: 600; transition: 0.2s; }
