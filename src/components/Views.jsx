@@ -132,6 +132,7 @@ export function Home({ go }) {
   const history = useStore((s) => s.history);
   const cur = useStore((s) => s.queue[s.index]);
   const playing = useStore((s) => s.playing);
+  const videoOn = useStore((s) => s.videoVisible);
   const recent = useMemo(() => history.slice(0, 10), [history]);
   useEffect(() => { AU.trending().then(setTrend).catch(() => setTrend([])); }, []);
   const feat = cur || DEMO_TRACKS[0];
@@ -145,10 +146,11 @@ export function Home({ go }) {
 
       <section className="spot" style={{ '--art': feat.art ? `url("${feat.art}")` : 'none' }}>
         <div className="spot-bg" aria-hidden="true" />
+        {IS_APP && videoOn && cur ? <div className="spot-video" data-video-slot aria-hidden="true" /> :
         <button className="spot-art" onClick={playFeat} aria-label={playing && cur ? 'Pause' : 'Play'}>
           <span className="orb" aria-hidden="true"><i /><i /></span>
           {feat.art && <img src={feat.art} alt="" />}
-        </button>
+        </button>}
         <div className="spot-info">
           <span className="spot-tag">{cur ? 'Now playing' : 'Start here'}</span>
           <h1>{feat.title}</h1>

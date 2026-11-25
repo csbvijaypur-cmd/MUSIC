@@ -57,13 +57,22 @@ function VideoStage() {
     const place = () => {
       raf = requestAnimationFrame(place);
       // Nothing to place while no YouTube song is on
-      if (!getState().videoVisible) return;
-      const slot = document.querySelector('.now-stage');
-      const r = slot?.getBoundingClientRect();
+      if (!getState().videoVisible) { if (lastKey) { document.documentElement.classList.remove('yt-mini'); lastKey = ''; } return; }
       const el = box.current;
       if (isFull()) return;
       const karaokeOn = !!document.querySelector('.karaoke');
-      const onScreen = getState().showVideo && !karaokeOn && r && r.width > 150 && r.left < innerWidth - 50 && r.top < innerHeight && r.bottom > 0 && getComputedStyle(slot.closest('.now')).visibility !== 'hidden';
+      // Where the player may sit: the Now Playing cover spot, or (in the app) the Home hero art spot.
+      const fits = (n) => {
+        if (!n) return null;
+        const r = n.getBoundingClientRect();
+        const ok = r.width >= 180 && r.left < innerWidth - 50 && r.top >= 0 && r.bottom <= innerHeight - 40 && r.top < innerHeight && r.bottom > 0
+          && getComputedStyle(n.closest('.now') || n).visibility !== 'hidden';
+        return ok ? r : null;
+      };
+      const nowSlot = (getState().showVideo || IS_APP) ? fits(document.querySelector('.now-stage')) : null;
+      const r = karaokeOn ? null : nowSlot || (IS_APP ? fits(document.querySelector('[data-video-slot]')) : null);
+      const onScreen = !!r;
+      document.documentElement.classList.toggle('yt-mini', !onScreen);
       const key = onScreen ? `${r.left|0},${r.top|0},${r.width|0},${r.height|0}` : 'mini';
       if (key === lastKey) return; // avoid style writes every frame
       lastKey = key;

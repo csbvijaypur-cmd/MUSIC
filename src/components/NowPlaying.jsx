@@ -47,7 +47,7 @@ export default function NowPlaying({ open, onClose, onKaraoke }) {
   const t = useStore((s) => s.queue[s.index]);
   const hasVideo = useStore((s) => s.videoVisible);
   const showVideo = useStore((s) => s.showVideo);
-  const video = hasVideo && showVideo;
+  const video = hasVideo && (showVideo || IS_APP); // in the app the player sits where the cover is
   const playing = useStore((s) => s.playing);
   const [tab, setTab] = useState('lyrics');
   return (
