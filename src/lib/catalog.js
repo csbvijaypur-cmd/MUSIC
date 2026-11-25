@@ -58,10 +58,10 @@ export async function similar(t, avoid = [], count = 10) {
   const seen = new Set([t, seed, ...avoid].map((x) => norm(x.title)));
   const out = [];
   const take = (x) => { const k = norm(x.title); if (!k || seen.has(k) || x.title.toLowerCase() === (seed.genre || '').toLowerCase()) return; seen.add(k); out.push({ ...x, radio: true }); };
-  // Alternate: 1 by the same artist, 1 from the genre, so the mix stays fresh
-  while (out.length < count && (byArtist.length || genre.length)) {
-    if (byArtist.length) take(byArtist.shift());
-    if (out.length < count && genre.length) take(genre.shift());
+  // Mix: 2 by the same artists, then 1 from the genre, so it stays close but fresh
+  for (let n = 0; out.length < count && (byArtist.length || genre.length); n++) {
+    const fromGenre = n % 3 === 2 || !byArtist.length;
+    take(fromGenre && genre.length ? genre.shift() : byArtist.shift() || genre.shift());
   }
   return out;
 }
