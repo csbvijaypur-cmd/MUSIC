@@ -68,29 +68,51 @@ export async function similar(t, avoid = [], count = 10) {
 
 /** Mood mixes: a few artists (or search words) per mood, shuffled into one playlist. */
 export const MOODS = [
-  { id: 'romantic', name: 'Romantic', emoji: '💞', c: '#ff4d8d', artists: ['Arijit Singh', 'Atif Aslam', 'Jubin Nautiyal', 'Shreya Ghoshal'] },
-  { id: 'punjabi', name: 'Punjabi', emoji: '🔥', c: '#ffb020', artists: ['AP Dhillon', 'Diljit Dosanjh', 'Karan Aujla', 'Sidhu Moose Wala'] },
-  { id: 'party', name: 'Party', emoji: '🎉', c: '#a855f7', artists: ['Badshah', 'Yo Yo Honey Singh', 'Guru Randhawa', 'Neha Kakkar'] },
-  { id: 'lofi', name: 'Lo-fi', emoji: '🌙', c: '#60a5fa', terms: ['lofi hindi', 'slowed reverb hindi', 'lofi flip'] },
-  { id: 'workout', name: 'Workout', emoji: '💪', c: '#22c55e', artists: ['Divine', 'KR$NA', 'Raftaar', 'Emiway Bantai'] },
-  { id: 'sad', name: 'Sad', emoji: '🌧️', c: '#94a3b8', artists: ['Vishal Mishra', 'Mohit Chauhan', 'KK', 'Ankit Tiwari'] },
-  { id: '90s', name: '90s Hits', emoji: '📼', c: '#f97316', artists: ['Kumar Sanu', 'Udit Narayan', 'Alka Yagnik', 'Sonu Nigam'] },
-  { id: 'bhakti', name: 'Bhakti', emoji: '🙏', c: '#facc15', terms: ['hanuman chalisa', 'shiv bhajan', 'krishna bhajan'] },
+  { id: 'romantic', sp: '37i9dQZF1DX0XUfTFmNBRM', more: ['romantic hindi songs'], name: 'Romantic', emoji: '💞', c: '#ff4d8d', artists: ['Arijit Singh', 'Atif Aslam', 'Jubin Nautiyal', 'Shreya Ghoshal'] },
+  { id: 'punjabi', sp: '37i9dQZF1DWXVJK4aT7pmk', name: 'Punjabi', emoji: '🔥', c: '#ffb020', artists: ['AP Dhillon', 'Diljit Dosanjh', 'Karan Aujla', 'Sidhu Moose Wala'] },
+  { id: 'party', sp: '37i9dQZF1DX8xfQRRX1PDm', more: ['bollywood party'], name: 'Party', emoji: '🎉', c: '#a855f7', artists: ['Badshah', 'Yo Yo Honey Singh', 'Guru Randhawa', 'Neha Kakkar'] },
+  { id: 'lofi', name: 'Lo-fi', emoji: '🌙', c: '#60a5fa', sp: '37i9dQZF1DX5q67ZpWyRrZ', terms: ['lofi', 'slowed reverb', 'lofi hindi', 'Lofi Flip', 'chill hindi'] },
+  { id: 'workout', more: ['gym motivation hindi', 'hip hop india'], name: 'Workout', emoji: '💪', c: '#22c55e', artists: ['Divine', 'KR$NA', 'Raftaar', 'Emiway Bantai'] },
+  { id: 'sad', more: ['sad hindi songs'], name: 'Sad', emoji: '🌧️', c: '#94a3b8', artists: ['Vishal Mishra', 'Mohit Chauhan', 'KK', 'Ankit Tiwari'] },
+  { id: '90s', sp: '37i9dQZF1DWYRTlrhMB12D', name: '90s Hits', emoji: '📼', c: '#f97316', artists: ['Kumar Sanu', 'Udit Narayan', 'Alka Yagnik', 'Sonu Nigam'] },
+  { id: 'bhakti', name: 'Bhakti', emoji: '🙏', c: '#facc15', terms: ['bhajan', 'hanuman chalisa', 'aarti', 'krishna bhajan', 'Hariharan bhajan'], artists: ['Anup Jalota', 'Hari Om Sharan', 'Gulshan Kumar'] },
 ];
-export async function moodMix(m, count = 30) {
-  const jobs = m.artists
-    ? m.artists.map((a) => get(`${API}/search?media=music&entity=song&attribute=artistTerm&limit=20&country=IN&term=${encodeURIComponent(a)}`).then(toTracks))
-    : m.terms.map((t) => search(t, 15));
-  const lists = (await Promise.all(jobs.map((p) => p.catch(() => [])))).map(shuffle);
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+// iTunes allows only ~20 calls a minute: retry once after a pause when it says no.
+const getSafe = (url) => get(url).catch(() => wait(1500).then(() => get(url))).catch(() => []);
+const artistSongs = (a, limit = 20) => getSafe(`${API}/search?media=music&entity=song&attribute=artistTerm&limit=${limit}&country=IN&term=${encodeURIComponent(a)}`).then(toTracks);
+const termSongs = (t, limit = 15) => getSafe(`${API}/search?media=music&entity=song&limit=${limit}&country=IN&term=${encodeURIComponent(t)}`).then(toTracks);
+
+function roundRobin(lists, count) {
+  lists = lists.map((l) => shuffle([...l]));
   const out = []; const seen = new Set();
-  // Round-robin so artists alternate
   for (let i = 0; out.length < count && lists.some((l) => l.length); i++) {
     const x = lists[i % lists.length].shift();
     if (!x) continue;
     const k = norm(x.title);
-    if (seen.has(k)) continue;
+    if (!k || seen.has(k)) continue;
     seen.add(k); out.push(x);
   }
+  return out;
+}
+
+export async function moodMix(m, count = 30) {
+  // Same mix for 6 hours: instant on the next tap and no extra calls
+  const ck = 'dhun.mood.' + (m.id || [...(m.artists || []), ...(m.terms || [])].join('|'));
+  try { const c = JSON.parse(localStorage.getItem(ck) || 'null'); if (c && Date.now() - c.t < 6 * 3600e3 && c.tracks?.length >= 8) return shuffle([...c.tracks]); } catch { /* ignore */ }
+  let lists = [];
+  // 1) by artist
+  const artists = m.artists || [];
+  lists = await Promise.all(artists.map((a) => artistSongs(a)));
+  // 2) search words, or plain searches when artist search came back thin
+  const terms = [...(m.terms || []), ...(lists.flat().length < 12 ? [...artists, ...(m.more || [])] : [])];
+  lists.push(...await Promise.all(terms.map((t) => termSongs(t))));
+  let out = roundRobin(lists.filter((l) => l.length), count);
+  // 3) last resort: a Spotify editorial playlist through our own function
+  if (out.length < 8 && m.sp) {
+    try { const { fetchSpotifyPlaylist } = await import('./spotifyImport.js'); out = (await fetchSpotifyPlaylist('https://open.spotify.com/playlist/' + m.sp)).tracks.slice(0, count); } catch { /* ignore */ }
+  }
+  if (out.length >= 8) { try { localStorage.setItem(ck, JSON.stringify({ t: Date.now(), tracks: out })); } catch { /* full */ } }
   return out;
 }
 
