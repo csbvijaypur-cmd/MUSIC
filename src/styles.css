@@ -414,3 +414,14 @@ input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.3); }
 .new-pl input { width: 160px; padding: 8px 12px; border-radius: 99px; }
 .lib-art img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .pop { position: fixed; top: auto; z-index: 95; }
+
+/* Netlify free plan shows a small badge bottom-right: keep a free strip for it under the app */
+.has-badge { --badge: 40px; }
+.has-badge .app { padding-bottom: calc(12px + var(--badge)) !important; }
+.has-badge .yt-stage.mini { bottom: calc(var(--bar-h) + 24px + var(--badge)); }
+.has-badge .toast { bottom: calc(var(--bar-h) + 40px + var(--badge)); }
+@media (max-width: 900px) {
+  .has-badge .app { padding-bottom: calc(8px + var(--badge) + env(safe-area-inset-bottom)) !important; }
+  .has-badge .yt-stage.mini { bottom: calc(var(--bar-h) + 80px + var(--badge)); }
+  .has-badge .toast { bottom: calc(var(--bar-h) + 84px + var(--badge)); }
+}
