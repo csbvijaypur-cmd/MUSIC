@@ -13,8 +13,35 @@
   <link rel="preconnect" href="https://lrclib.net" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <title>Dhun Music</title>
+  <style>
+    #splash { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: radial-gradient(60% 50% at 50% 45%, #1a1035 0%, #05050b 70%); transition: opacity .6s ease, visibility .6s; }
+    #splash.hide { opacity: 0; visibility: hidden; }
+    #splash .wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+    #splash svg { width: 120px; height: 120px; filter: drop-shadow(0 0 18px #7c61ff) drop-shadow(0 0 40px #ff3d8b88); }
+    #splash path { stroke-dasharray: 260; stroke-dashoffset: 260; animation: dhunDraw 1.2s cubic-bezier(.6,.1,.2,1) forwards; }
+    #splash circle { transform-origin: 32px 32px; animation: dhunPulse 1.6s ease-in-out infinite; }
+    #splash .name { font: 900 34px/1 'Orbitron', system-ui, sans-serif; letter-spacing: .35em; padding-left: .35em; color: #fff; text-shadow: 0 0 20px #7c61ff, 0 0 40px #ff3d8b66; opacity: 0; animation: dhunIn .8s .5s ease forwards; }
+    @keyframes dhunDraw { to { stroke-dashoffset: 0; } }
+    @keyframes dhunPulse { 50% { transform: scale(1.06); opacity: .7; } }
+    @keyframes dhunIn { from { opacity: 0; transform: translateY(8px); letter-spacing: .6em; } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { #splash * { animation: none !important; stroke-dashoffset: 0 !important; opacity: 1 !important; } }
+  </style>
 </head>
 <body>
+  <div id="splash" aria-hidden="true">
+    <div class="wrap">
+      <svg viewBox="0 0 64 64">
+        <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5f6d"/><stop offset="1" stop-color="#7c61ff"/></linearGradient></defs>
+        <circle cx="32" cy="32" r="30" fill="none" stroke="url(#sg)" stroke-width="2" opacity=".5"/>
+        <path d="M8 36c5 0 5-11 10-11s5 18 10 18 5-26 10-26 5 19 10 19 5-8 8-8" fill="none" stroke="url(#sg)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="name">DHUN</div>
+    </div>
+  </div>
+  <script>
+    // Brand intro: shows for ~2 s, then fades out.
+    setTimeout(function () { var s = document.getElementById('splash'); if (!s) return; s.classList.add('hide'); setTimeout(function () { s.remove(); }, 700); }, 2000);
+  </script>
   <div id="root"></div>
   <script type="module" src="./src/main.jsx"></script>
 </body>
