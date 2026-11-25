@@ -116,7 +116,7 @@ export function Search({ initial = '' }) {
         <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="What do you want to hear?" aria-label="Search" />
         {busy && <span className="spinner" />}
       </div>
-      <div className="chips">{SOURCES.map(([k, l]) => <button key={k} className={'chip' + (src === k ? ' on' : '')} onClick={() => setSrc(k)}>{l}</button>)}</div>
+      <div className="chips">{SOURCES.filter(([k]) => k !== 'spotify' || SP.isLoggedIn()).map(([k, l]) => <button key={k} className={'chip' + (src === k ? ' on' : '')} onClick={() => setSrc(k)}>{l}</button>)}</div>
       
       {shown.map((k) => res[k] != null && !(src === 'all' && typeof res[k] === 'string' && k !== 'catalog') && (
         <section key={k}>
@@ -183,14 +183,15 @@ export function Settings() {
     <div className="view settings">
       <h1>Settings</h1>
       <ThemePicker />
-      <form className="panel glass" onSubmit={save}>
+      {/* Keys are built into the published app, so this only shows in a local build without them */}
+      {!import.meta.env.VITE_YOUTUBE_API_KEY && <form className="panel glass" onSubmit={save}>
         <h3>API keys</h3>
-        <label>YouTube Data API key<input value={cfg.youtubeApiKey} onChange={(e) => setCfg({ ...cfg, youtubeApiKey: e.target.value })} placeholder="AIza…" /></label>
+        <label>YouTube Data API key<input type="password" autoComplete="off" value={cfg.youtubeApiKey} onChange={(e) => setCfg({ ...cfg, youtubeApiKey: e.target.value })} placeholder="AIza…" /></label>
         <label>Spotify Client ID<input value={cfg.spotifyClientId} onChange={(e) => setCfg({ ...cfg, spotifyClientId: e.target.value })} placeholder="32 characters" /></label>
         <p className="note">Spotify Redirect URI: <code>{SP.redirectUri()}</code></p>
         <button className="btn primary">{saved ? 'Saved ✓' : 'Save'}</button>
-      </form>
-      <section className="panel glass">
+      </form>}
+      {getConfig().spotifyClientId && <section className="panel glass">
         <h3>Spotify</h3>
         {logged ? <>
           <p>Spotify connected.</p>
@@ -198,7 +199,7 @@ export function Settings() {
           <p className="note">With Premium off, Spotify songs play free through YouTube.</p>
           <button className="btn" onClick={() => { SP.logout(); setLogged(false); }}>Disconnect</button>
         </> : <button className="btn primary" onClick={() => SP.login().catch(() => {})} disabled={!getConfig().spotifyClientId}>Connect Spotify</button>}
-      </section>
+      </section>}
       <section className="panel glass">
         <h3>App install</h3>
         <p className="note">Install on your phone or PC.</p>

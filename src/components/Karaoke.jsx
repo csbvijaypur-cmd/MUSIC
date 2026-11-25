@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import Icon from './Icon.jsx';
-import Lyrics from './Lyrics.jsx';
+import Lyrics, { LyricsLang } from './Lyrics.jsx';
 import Visualizer from './Visualizer.jsx';
 import { fmt } from './TrackRow.jsx';
 import { useStore, toggle, next, prev } from '../lib/store.js';
@@ -24,6 +24,7 @@ export default function Karaoke({ onClose }) {
       <header className="k-head">
         {t?.art && <img src={t.artSmall || t.art} alt="" />}
         <div><b>{t?.title}</b><span>{t?.artist}</span></div>
+        <LyricsLang />
         <button className="ib" onClick={onClose} aria-label="Close karaoke"><Icon name="close" size={24} /></button>
       </header>
       <Lyrics big />
