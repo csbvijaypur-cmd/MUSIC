@@ -9,13 +9,13 @@ const lrc = (lines, step, start = 2) => lines.map((l, i) => {
 }).join('\n');
 
 export const DEMO_TRACKS = [
-  { id: 'demo:1', source: 'demo', title: 'Neon Monsoon', artist: 'Lehar Demo', album: 'Synth Sessions', bpm: 96, key: 0, duration: 48,
+  { id: 'demo:1', source: 'demo', title: 'Neon Monsoon', artist: 'Dhun Demo', album: 'Synth Sessions', bpm: 96, key: 0, duration: 48,
     art: art('#ff8a5c', '#d6246e', '#2b0f3a'), color: 'rgb(255 99 120)',
-    lrc: lrc(['Baarish ki boondein, neon ki roshni', 'Sheher so raha hai, hum jaag rahe', 'Har dhadkan mein ek naya sur', 'Chalo aaj raat bas yahi gaana', 'Lehar uthi hai, rukna nahi', 'Neon Monsoon, phir se ek baar', '(instrumental)'], 6.4) },
-  { id: 'demo:2', source: 'demo', title: 'Chai at Midnight', artist: 'Lehar Demo', album: 'Synth Sessions', bpm: 82, key: 5, duration: 52,
+    lrc: lrc(['Baarish ki boondein, neon ki roshni', 'Sheher so raha hai, hum jaag rahe', 'Har dhadkan mein ek naya sur', 'Chalo aaj raat bas yahi gaana', 'Dhun bajti rahe, rukna nahi', 'Neon Monsoon, phir se ek baar', '(instrumental)'], 6.4) },
+  { id: 'demo:2', source: 'demo', title: 'Chai at Midnight', artist: 'Dhun Demo', album: 'Synth Sessions', bpm: 82, key: 5, duration: 52,
     art: art('#ffd36e', '#e2833a', '#3a1d10'), color: 'rgb(244 170 70)',
     lrc: lrc(['Kettle ki seeti, khidki pe chaand', 'Dheere dheere ghoonth, dheere se baat', 'Kal ki fikar ko kal pe chhodo', 'Abhi bas yeh pal, yeh garam haath', 'Chai at midnight, sab theek lage', '(instrumental)'], 7.6) },
-  { id: 'demo:3', source: 'demo', title: 'Ocean Drive 2049', artist: 'Lehar Demo', album: 'Synth Sessions', bpm: 118, key: 7, duration: 44,
+  { id: 'demo:3', source: 'demo', title: 'Ocean Drive 2049', artist: 'Dhun Demo', album: 'Synth Sessions', bpm: 118, key: 7, duration: 44,
     art: art('#6ef3ff', '#3a6df0', '#0d1240'), color: 'rgb(80 170 255)',
     lrc: lrc(['Full speed, khule raaste', 'Samandar ke saath saath', 'Headlights mein sapne chamke', 'Volume upar, haath hawa mein', 'Ocean Drive, kabhi khatam na ho', '(instrumental)'], 6.2) },
 ];

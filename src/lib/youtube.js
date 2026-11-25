@@ -34,9 +34,11 @@ export const toTrack = (id, snippet, duration = 0) => {
   };
 };
 
+const searchCache = new Map();
 export async function search(q) {
+  if (searchCache.has(q)) return searchCache.get(q);
   const key = getConfig().youtubeApiKey;
-  if (!key) throw new Error('YouTube API key nahi hai');
+  if (!key) throw new Error('To play songs, add your free YouTube API key in Settings');
   const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&videoEmbeddable=true&maxResults=12&q=${encodeURIComponent(q)}&key=${key}`);
   if (!res.ok) throw new Error('YouTube API error ' + res.status);
   const data = await res.json();
@@ -46,7 +48,9 @@ export async function search(q) {
     const d = await (await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${ids.join(',')}&key=${key}`)).json();
     d.items.forEach((v) => (durs[v.id] = parseDur(v.contentDetails.duration)));
   } catch {}
-  return data.items.map((i) => toTrack(i.id.videoId, i.snippet, durs[i.id.videoId] || 0));
+  const out = data.items.map((i) => toTrack(i.id.videoId, i.snippet, durs[i.id.videoId] || 0));
+  searchCache.set(q, out);
+  return out;
 }
 
 /** Pasted link works even without an API key (uses oEmbed for the title). */

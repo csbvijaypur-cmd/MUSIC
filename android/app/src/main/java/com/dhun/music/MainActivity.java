@@ -1,4 +1,4 @@
-package com.lehar.music;
+package com.dhun.music;
 
 import com.getcapacitor.BridgeActivity;
 

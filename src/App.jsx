@@ -43,6 +43,8 @@ function VideoStage() {
 
 export default function App() {
   const [view, setView] = useState('home');
+  const [q0, setQ0] = useState('');
+  const go = useCallback((v, q) => { setQ0(q || ''); setView(v); }, []);
   const [nowOpen, setNowOpen] = useState(false);
   const [karaoke, setKaraoke] = useState(false);
   const [eq, setEq] = useState(false);
@@ -76,9 +78,9 @@ export default function App() {
       </div>
 
       <nav className="side glass" aria-label="Main">
-        <div className="logo"><svg viewBox="0 0 64 64" width="30" height="30"><path d="M6 38c6 0 6-12 12-12s6 20 12 20 6-28 12-28 6 20 12 20" fill="none" stroke="var(--accent)" strokeWidth="6" strokeLinecap="round" /></svg><span>LEHAR</span></div>
+        <div className="logo"><svg viewBox="0 0 64 64" width="30" height="30"><path d="M6 38c6 0 6-12 12-12s6 20 12 20 6-28 12-28 6 20 12 20" fill="none" stroke="var(--accent)" strokeWidth="6" strokeLinecap="round" /></svg><span>DHUN</span></div>
         {NAV.map(([k, l, ic]) => (
-          <button key={k} className={'nav' + (view === k ? ' on' : '')} onClick={() => setView(k)} aria-current={view === k ? 'page' : undefined}>
+          <button key={k} className={'nav' + (view === k ? ' on' : '')} onClick={() => go(k)} aria-current={view === k ? 'page' : undefined}>
             <Icon name={ic} /><span>{l}</span>
           </button>
         ))}
@@ -86,8 +88,8 @@ export default function App() {
       </nav>
 
       <main className="main" key={view}>
-        {view === 'home' && <Home go={setView} />}
-        {view === 'search' && <Search />}
+        {view === 'home' && <Home go={go} />}
+        {view === 'search' && <Search initial={q0} />}
         {view === 'library' && <Library />}
         {view === 'settings' && <Settings />}
       </main>

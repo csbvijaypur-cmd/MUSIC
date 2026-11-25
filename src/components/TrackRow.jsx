@@ -2,7 +2,7 @@ import Icon from './Icon.jsx';
 import { useStore, playTrack, addToQueue, playNextInQueue, toggleLike } from '../lib/store.js';
 
 export const fmt = (s) => { s = Math.max(0, Math.floor(s || 0)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
-const LABEL = { youtube: 'YouTube', spotify: 'Spotify', audius: 'Audius', demo: 'Demo' };
+const LABEL = { catalog: 'Song', youtube: 'YouTube', spotify: 'Spotify', audius: 'Audius', demo: 'Demo' };
 export const SourceBadge = ({ source }) => <span className={'badge ' + source}>{LABEL[source]}</span>;
 
 export default function TrackRow({ t, i, onPlay }) {
@@ -24,8 +24,8 @@ export default function TrackRow({ t, i, onPlay }) {
       <span className="row-dur">{t.duration ? fmt(t.duration) : ''}</span>
       <span className="row-actions">
         <button className={'ib' + (liked ? ' liked' : '')} onClick={() => toggleLike(t)} aria-label="Like"><Icon name="heart" size={18} fill={liked} /></button>
-        <button className="ib" onClick={() => playNextInQueue(t)} aria-label="Play next" title="Agla yahi"><Icon name="playnext" size={18} /></button>
-        <button className="ib" onClick={() => addToQueue(t)} aria-label="Add to queue" title="Queue me daalo"><Icon name="plus" size={18} /></button>
+        <button className="ib" onClick={() => playNextInQueue(t)} aria-label="Play next" title="Play next"><Icon name="playnext" size={18} /></button>
+        <button className="ib" onClick={() => addToQueue(t)} aria-label="Add to queue" title="Add to queue"><Icon name="plus" size={18} /></button>
       </span>
     </div>
   );

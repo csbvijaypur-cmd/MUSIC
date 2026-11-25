@@ -13,12 +13,12 @@ import { createSynth } from './demo.js';
 import { safeGet, safeSet } from './config.js';
 
 // ---------------- tiny store ----------------
-const saved = (() => { try { return JSON.parse(safeGet('lehar.state') || '{}'); } catch { return {}; } })();
+const saved = (() => { try { return JSON.parse(safeGet('dhun.state') || '{}'); } catch { return {}; } })();
 let state = {
   queue: saved.queue || [], index: saved.index ?? -1, playing: false, loading: false,
   position: 0, duration: 0, volume: saved.volume ?? 0.85, shuffle: false, repeat: 'off',
-  accent: 'rgb(124 97 255)', lyrics: null, error: '', liked: saved.liked || [],
-  spotifyPremium: saved.spotifyPremium ?? false, eq: saved.eq || [0, 0, 0, 0, 0], eqPreset: saved.eqPreset || 'Flat', videoVisible: false, activeKind: null,
+  accent: saved.themeColor && saved.themeColor !== 'auto' ? saved.themeColor : 'rgb(124 97 255)', lyrics: null, error: '', liked: saved.liked || [],
+  spotifyPremium: saved.spotifyPremium ?? false, themeColor: saved.themeColor || 'auto', eq: saved.eq || [0, 0, 0, 0, 0], eqPreset: saved.eqPreset || 'Flat', videoVisible: false, activeKind: null,
 };
 const listeners = new Set();
 export const getState = () => state;
@@ -28,8 +28,8 @@ export function setState(patch) {
 }
 export const useStore = (sel) => useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), () => sel(state));
 listeners.add(() => {
-  const { queue, index, volume, liked, spotifyPremium, eq, eqPreset } = state;
-  safeSet('lehar.state', JSON.stringify({ queue: queue.slice(0, 200), index, volume, liked, spotifyPremium, eq, eqPreset }));
+  const { queue, index, volume, liked, spotifyPremium, eq, eqPreset, themeColor } = state;
+  safeSet('dhun.state', JSON.stringify({ queue: queue.slice(0, 200), index, volume, liked, spotifyPremium, eq, eqPreset, themeColor }));
 });
 const current = () => state.queue[state.index];
 
@@ -75,7 +75,7 @@ els.forEach((el, i) => {
   el.addEventListener('waiting', () => i === elActive && setState({ loading: true }));
   el.addEventListener('error', () => {
     if (el.crossOrigin && el.src) { el.crossOrigin = null; const s = el.src; el.src = s; if (i === elActive) el.play().catch(() => {}); } // retry without CORS
-    else if (i === elActive && state.activeKind === 'audius') fail('Ye track stream nahi ho paaya');
+    else if (i === elActive && state.activeKind === 'audius') fail('Couldn’t stream this track');
   });
 });
 let wired = new WeakSet();
@@ -106,7 +106,7 @@ export function mountYouTube(elA, elB) {
           else if (e.data === 2) setState({ playing: false });
           else if (e.data === 3) setState({ loading: true });
         },
-        onError: (e) => i === yt.active && fail(e.data === 150 || e.data === 101 ? 'Is video ko owner ne embed block kiya hai, agla gaana chal raha hai' : 'YouTube error ' + e.data, true),
+        onError: (e) => i === yt.active && fail(e.data === 150 || e.data === 101 ? 'This video can’t be played here. Skipping.' : 'YouTube error ' + e.data, true),
       },
     });
     yt.players[i] = p;
@@ -117,13 +117,20 @@ const ytActive = () => yt.players[yt.active];
 
 // ---------------- resolve Spotify -> YouTube (free mode) ----------------
 const matchCache = new Map();
+const savedMatches = (() => { try { return JSON.parse(safeGet('dhun.matches') || '{}'); } catch { return {}; } })();
 async function resolvePlayable(t) {
-  if (t.source !== 'spotify' || (state.spotifyPremium && SP.isLoggedIn())) return t;
+  if (t.source === 'spotify' && state.spotifyPremium && SP.isLoggedIn()) return t;
+  if (t.source !== 'spotify' && t.source !== 'catalog') return t;
+  const asYt = (videoId) => ({ ...t, source: 'youtube', videoId, matchedFrom: t.source });
+  if (savedMatches[t.id]) return asYt(savedMatches[t.id]); // saves YouTube API quota
   if (matchCache.has(t.id)) return matchCache.get(t.id);
   const job = YT.search(`${t.artist.split(',')[0]} ${t.title} official audio`).then((list) => {
     const near = list.find((v) => v.duration && Math.abs(v.duration - t.duration) <= 6) || list[0];
-    if (!near) throw new Error('YouTube par match nahi mila');
-    return { ...t, source: 'youtube', videoId: near.videoId, matchedFrom: 'spotify' };
+    if (!near) throw new Error('No match found on YouTube');
+    savedMatches[t.id] = near.videoId;
+    const keys = Object.keys(savedMatches); if (keys.length > 2000) delete savedMatches[keys[0]];
+    safeSet('dhun.matches', JSON.stringify(savedMatches));
+    return asYt(near.videoId);
   });
   matchCache.set(t.id, job);
   job.catch(() => matchCache.delete(t.id));
@@ -176,7 +183,7 @@ async function start(from = 0) {
       await SP.play(p.uri, onSpotifyState); if (from) SP.seek(from);
     }
   } catch (e) {
-    if (my === token) fail(e.message || 'Play nahi ho paaya', true);
+    if (my === token) fail(e.message || 'Couldn’t play', true);
   }
 }
 
@@ -318,8 +325,13 @@ async function preloadNext() {
 
 // ---------------- theme, lyrics, OS media controls ----------------
 async function theme(t) {
+  if (state.themeColor !== 'auto') return;
   const c = t.color || (await artColor(t.art, t.id));
-  if (current()?.id === t.id) setState({ accent: c });
+  if (current()?.id === t.id && state.themeColor === 'auto') setState({ accent: c });
+}
+export function setThemeColor(c) {
+  setState({ themeColor: c, accent: c === 'auto' ? 'rgb(124 97 255)' : c });
+  if (c === 'auto' && current()) theme(current());
 }
 async function lyricsFor(t) {
   setState({ lyrics: { loading: true } });

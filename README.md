@@ -1,4 +1,4 @@
-# Lehar Music 🎧
+# Dhun Music 🎧
 
 Ek futuristic music app jisme **YouTube, Spotify aur Audius** ke gaane ek hi jagah chalte hain, **synced lyrics**, **equalizer**, **full-screen karaoke**, aur album ke colour se badalti neon theme ke saath. Web app + installable PWA + Android APK.
 
@@ -6,7 +6,7 @@ Ek futuristic music app jisme **YouTube, Spotify aur Audius** ke gaane ek hi jag
 
 | Feature | Kaise kaam karta hai |
 |---|---|
-| Unified search | Ek search box, teen jagah se result: YouTube, Spotify, Audius |
+| Name se search | Sirf gaane ka naam likho, koi link nahi. Free song catalog (title, artist, cover) + YouTube videos + Audius + Spotify ek saath |
 | Free playback | YouTube ke official player se (free, koi Premium nahi). Audius ke full songs bhi free |
 | Spotify | Free account: search + gaane ki info Spotify se, play YouTube se (auto match). Premium: Spotify direct (official Web Playback SDK) |
 | Kam buffering | Agla gaana 20 sec pehle hi background me load ho jata hai (do players A/B), phir turant switch |
@@ -14,7 +14,7 @@ Ek futuristic music app jisme **YouTube, Spotify aur Audius** ke gaane ek hi jag
 | Karaoke mode | Full-screen bade lyrics, `L` key ya lyrics button |
 | Equalizer | 5 band + presets (Bass Boost, Bass Max, Vocal, Bollywood, Lofi, Club). Audius aur demo gaano par |
 | Visualizer | Audius/demo par real audio se; YouTube/Spotify par animated (unki audio browser ko milti nahi) |
-| Theme | Album art ka colour nikaal kar poori app ka glow badalta hai |
+| Theme | Settings → Theme colour: Auto (album art se) ya apna fixed colour |
 | Queue | Drag karke order badlo, "Play next", remove, shuffle, repeat |
 | Liked songs | ♥ dabao, browser me save |
 | Lock-screen controls | Media Session API (phone notification / keyboard media keys) |
@@ -37,7 +37,9 @@ npm run dev              # http://127.0.0.1:5173
 
 Bina kisi key ke bhi chalega: **Demo tracks**, **Audius** search/trending, aur **YouTube link paste** karke play.
 
-### 1. YouTube API key (YouTube search ke liye, free)
+### 1. YouTube API key (gaane chalane ke liye zaroori, free, card nahi lagta)
+App me gaana naam se dhoondhne ke baad usko YouTube par match karke chalaya jata hai, iske liye ye key chahiye. Ek baar daal do, phir kabhi link paste nahi karna padega. Best tarika: key ko GitHub secret `VITE_YOUTUBE_API_KEY` me daalo, to website aur APK dono me pehle se lagi rahegi.
+
 1. https://console.cloud.google.com par jao, naya project banao.
 2. "APIs & Services → Library" me **YouTube Data API v3** enable karo.
 3. "Credentials → Create credentials → API key".
@@ -57,13 +59,14 @@ Bina kisi key ke bhi chalega: **Demo tracks**, **Audius** search/trending, aur *
 3. `main` par push hote hi site `https://csbvijaypur-cmd.github.io/MUSIC/` par aa jayegi.
 
 ## Android app (APK)
-* **Bina Android Studio:** `main` par push karo → repo ke **Actions → Android APK** → latest run → `lehar-music-apk` download → phone par install (Unknown sources allow karna padega).
+* **Bina Android Studio:** `main` par push karo → repo ke **Actions → Android APK** → latest run → `dhun-music-apk` download → phone par install (Unknown sources allow karna padega).
 * **Android Studio se:** `npm run android` (build + sync + Android Studio khulega) → Run ▶.
 * Note: Android app me Spotify login web jitna smooth nahi hai; Spotify ke liye website version best hai. YouTube ke gaane app band/background hone par ruk sakte hain (YouTube ka rule), Audius ke gaane chalte rehte hain.
 
 ## Project structure
 ```
 src/lib/store.js      player engine: queue, A/B preloading, sources, EQ, media session
+src/lib/catalog.js    free song search (iTunes Search API, no key)
 src/lib/youtube.js    YouTube search + IFrame API + title cleanup
 src/lib/spotify.js    PKCE login, search, Web Playback SDK
 src/lib/audius.js     Audius free full tracks

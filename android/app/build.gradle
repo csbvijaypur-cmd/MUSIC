@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "com.lehar.music"
+    namespace "com.dhun.music"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.lehar.music"
+        applicationId "com.dhun.music"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

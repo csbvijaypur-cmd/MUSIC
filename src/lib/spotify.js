@@ -13,10 +13,10 @@ const randomStr = (n = 64) => {
 
 export async function login() {
   const { spotifyClientId } = getConfig();
-  if (!spotifyClientId) throw new Error('Settings me Spotify Client ID daalo pehle.');
+  if (!spotifyClientId) throw new Error('Add a Spotify Client ID in Settings first.');
   const verifier = randomStr();
   const challenge = b64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
-  sessionStorage.setItem('lehar.pkce', verifier);
+  sessionStorage.setItem('dhun.pkce', verifier);
   const p = new URLSearchParams({
     client_id: spotifyClientId, response_type: 'code', redirect_uri: redirectUri(),
     code_challenge_method: 'S256', code_challenge: challenge, scope: SCOPES,
@@ -25,9 +25,9 @@ export async function login() {
 }
 
 function storeTokens(t) {
-  safeSet('lehar.sp.access', t.access_token);
-  if (t.refresh_token) safeSet('lehar.sp.refresh', t.refresh_token);
-  safeSet('lehar.sp.expires', String(Date.now() + (t.expires_in - 60) * 1000));
+  safeSet('dhun.sp.access', t.access_token);
+  if (t.refresh_token) safeSet('dhun.sp.refresh', t.refresh_token);
+  safeSet('dhun.sp.expires', String(Date.now() + (t.expires_in - 60) * 1000));
 }
 
 async function tokenRequest(body) {
@@ -45,28 +45,28 @@ export async function handleRedirect() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   if (!code) return false;
-  const verifier = sessionStorage.getItem('lehar.pkce');
+  const verifier = sessionStorage.getItem('dhun.pkce');
   window.history.replaceState({}, '', redirectUri());
   if (!verifier) return false;
   await tokenRequest({ client_id: getConfig().spotifyClientId, grant_type: 'authorization_code', code, redirect_uri: redirectUri(), code_verifier: verifier });
-  sessionStorage.removeItem('lehar.pkce');
+  sessionStorage.removeItem('dhun.pkce');
   return true;
 }
 
-export const isLoggedIn = () => !!safeGet('lehar.sp.refresh') || !!safeGet('lehar.sp.access');
-export function logout() { ['access', 'refresh', 'expires'].forEach((k) => safeSet('lehar.sp.' + k, '')); }
+export const isLoggedIn = () => !!safeGet('dhun.sp.refresh') || !!safeGet('dhun.sp.access');
+export function logout() { ['access', 'refresh', 'expires'].forEach((k) => safeSet('dhun.sp.' + k, '')); }
 
 export async function getToken() {
-  const access = safeGet('lehar.sp.access');
-  if (access && Date.now() < Number(safeGet('lehar.sp.expires'))) return access;
-  const refresh = safeGet('lehar.sp.refresh');
+  const access = safeGet('dhun.sp.access');
+  if (access && Date.now() < Number(safeGet('dhun.sp.expires'))) return access;
+  const refresh = safeGet('dhun.sp.refresh');
   if (!refresh) return null;
   return tokenRequest({ client_id: getConfig().spotifyClientId, grant_type: 'refresh_token', refresh_token: refresh });
 }
 
 async function api(path, opts = {}) {
   const token = await getToken();
-  if (!token) throw new Error('Spotify login nahi hai');
+  if (!token) throw new Error('Not logged in to Spotify');
   const res = await fetch('https://api.spotify.com/v1' + path, { ...opts, headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json', ...(opts.headers || {}) } });
   if (res.status === 204) return null;
   if (!res.ok) throw new Error('Spotify API error ' + res.status);
@@ -99,12 +99,12 @@ let player = null, deviceId = null, readyPromise = null;
 export function initPlayer(onState) {
   if (readyPromise) return readyPromise;
   readyPromise = loadSdk().then((Spotify) => new Promise((resolve, reject) => {
-    player = new Spotify.Player({ name: 'Lehar Music', getOAuthToken: (cb) => getToken().then(cb), volume: 0.8 });
+    player = new Spotify.Player({ name: 'Dhun Music', getOAuthToken: (cb) => getToken().then(cb), volume: 0.8 });
     player.addListener('ready', ({ device_id }) => { deviceId = device_id; resolve(player); });
     player.addListener('player_state_changed', (s) => s && onState(s));
     player.addListener('initialization_error', ({ message }) => reject(new Error(message)));
     player.addListener('authentication_error', ({ message }) => reject(new Error(message)));
-    player.addListener('account_error', () => reject(new Error('Spotify full playback ke liye Premium account chahiye.')));
+    player.addListener('account_error', () => reject(new Error('Spotify playback needs a Premium account.')));
     player.connect();
   }));
   readyPromise.catch(() => { readyPromise = null; });

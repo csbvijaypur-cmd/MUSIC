@@ -1,6 +1,6 @@
 // Audius: free, legal, full-length tracks with an open API (no key, no login).
 // Streams are plain audio files, so we can run a real Web Audio visualizer on them.
-const APP = 'LeharMusic';
+const APP = 'DhunMusic';
 let hostPromise;
 
 async function host() {

@@ -14,11 +14,11 @@ export default function Lyrics({ big = false }) {
     el?.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }, [active]);
 
-  if (!lyrics) return <div className="lyr-empty">Gaana chalao, lyrics yahan dikhenge</div>;
-  if (lyrics.loading) return <div className="lyr-empty"><span className="spinner" /> Lyrics dhoondh rahe hain…</div>;
+  if (!lyrics) return <div className="lyr-empty">Play a song to see lyrics</div>;
+  if (lyrics.loading) return <div className="lyr-empty"><span className="spinner" /> Finding lyrics…</div>;
   if (!lines.length) return lyrics.plain
     ? <div className={'lyrics plain' + (big ? ' big' : '')}>{lyrics.plain.split('\n').map((l, i) => <p key={i}>{l || ' '}</p>)}</div>
-    : <div className="lyr-empty">Is gaane ke lyrics nahi mile</div>;
+    : <div className="lyr-empty">No lyrics found</div>;
 
   return (
     <div className={'lyrics' + (big ? ' big' : '')} ref={box}>

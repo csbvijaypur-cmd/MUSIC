@@ -9,7 +9,7 @@ function Queue() {
   const queue = useStore((s) => s.queue);
   const index = useStore((s) => s.index);
   const [drag, setDrag] = useState(null);
-  if (!queue.length) return <div className="lyr-empty">Queue khaali hai</div>;
+  if (!queue.length) return <div className="lyr-empty">Queue is empty</div>;
   return (
     <ol className="queue">
       {queue.map((t, i) => (
@@ -45,8 +45,8 @@ export default function NowPlaying({ open, onClose, onKaraoke }) {
         )}
       </div>
       <div className="now-meta">
-        <h2 key={t?.id}>{t?.title || 'Lehar'}</h2>
-        <p>{t ? <><SourceBadge source={t.source} /> {t.artist}{t.matchedFrom ? ' · Spotify match' : ''}</> : 'Aaj kya sunoge?'}</p>
+        <h2 key={t?.id}>{t?.title || 'Dhun'}</h2>
+        <p>{t ? <><SourceBadge source={t.source} /> {t.artist}{t.matchedFrom ? ' · via YouTube' : ''}</> : 'Nothing playing'}</p>
       </div>
       <div className="tabs" role="tablist">
         <button role="tab" aria-selected={tab === 'lyrics'} onClick={() => setTab('lyrics')}>Lyrics</button>

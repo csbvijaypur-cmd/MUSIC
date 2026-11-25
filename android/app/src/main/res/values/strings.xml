@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Lehar Music</string>
-    <string name="title_activity_main">Lehar Music</string>
-    <string name="package_name">com.lehar.music</string>
-    <string name="custom_url_scheme">com.lehar.music</string>
+    <string name="app_name">Dhun Music</string>
+    <string name="title_activity_main">Dhun Music</string>
+    <string name="package_name">com.dhun.music</string>
+    <string name="custom_url_scheme">com.dhun.music</string>
 </resources>

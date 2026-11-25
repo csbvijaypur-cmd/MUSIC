@@ -1,5 +1,5 @@
 // App-shell cache only. Music streams are never cached (YouTube/Spotify terms).
-const CACHE = 'lehar-shell-v1';
+const CACHE = 'dhun-shell-v1';
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './icon.svg', './manifest.webmanifest'])));
   self.skipWaiting();

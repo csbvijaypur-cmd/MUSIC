@@ -21,8 +21,8 @@ export default function PlayerBar({ onKaraoke, onEq, onOpenNow }) {
       <button className="bar-track" onClick={onOpenNow} disabled={!t} aria-label="Now playing">
         <span className={'bar-art' + (playing ? ' spin' : '')}>{t?.art && <img src={t.artSmall || t.art} alt="" />}</span>
         <span className="bar-meta">
-          <span className="bar-title">{t ? t.title : 'Kuch nahi chal raha'}</span>
-          <span className="bar-artist">{t ? <><SourceBadge source={t.source} /> {t.artist}</> : 'Search karo ya demo chalao'}</span>
+          <span className="bar-title">{t ? t.title : 'Nothing playing'}</span>
+          <span className="bar-artist">{t ? <><SourceBadge source={t.source} /> {t.artist}</> : 'Pick a song to start'}</span>
         </span>
       </button>
       {t && <button className={'ib like-btn' + (liked ? ' liked' : '')} onClick={() => toggleLike(t)} aria-label="Like"><Icon name="heart" fill={liked} /></button>}

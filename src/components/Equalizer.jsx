@@ -27,8 +27,8 @@ export default function Equalizer({ onClose }) {
         </div>
         <p className={'note' + (works ? '' : ' warn')}>
           {works
-            ? 'Equalizer Audius aur demo gaano par live kaam karta hai.'
-            : 'Ye gaana YouTube/Spotify player ke andar chal raha hai, unki audio browser ko milti nahi, isliye EQ is gaane par nahi lagega. Audius gaano par lagega.'}
+            ? 'Works on Audius and demo tracks.'
+            : 'EQ can’t reach YouTube or Spotify audio. It works on Audius and demo tracks.'}
         </p>
       </section>
     </div>

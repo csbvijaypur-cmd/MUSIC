@@ -1,6 +1,6 @@
 {
-  "appId": "com.lehar.music",
-  "appName": "Lehar Music",
+  "appId": "com.dhun.music",
+  "appName": "Dhun Music",
   "webDir": "dist",
   "server": { "androidScheme": "https", "allowNavigation": ["accounts.spotify.com"] },
   "android": { "backgroundColor": "#05050b" }
