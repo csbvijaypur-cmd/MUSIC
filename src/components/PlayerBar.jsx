@@ -1,5 +1,6 @@
 import Icon from './Icon.jsx';
 import Visualizer from './Visualizer.jsx';
+import { SleepButton } from './Extras.jsx';
 import { fmt, SourceBadge } from './TrackRow.jsx';
 import { useStore, toggle, next, prev, seek, livePosition, setVolume, toggleShuffle, cycleRepeat, toggleLike } from '../lib/store.js';
 
@@ -87,6 +88,7 @@ export default function PlayerBar({ onKaraoke, onEq, onOpenNow }) {
       </div>
 
       <div className="bar-right">
+        <SleepButton up />
         <button className="ib" onClick={onKaraoke} aria-label="Karaoke lyrics" title="Full-screen lyrics"><Icon name="lyrics" /></button>
         <button className="ib" onClick={onEq} aria-label="Equalizer" title="Equalizer">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M6 4v16M12 4v16M18 4v16" /><circle cx="6" cy="14" r="2" fill="currentColor" /><circle cx="12" cy="8" r="2" fill="currentColor" /><circle cx="18" cy="16" r="2" fill="currentColor" /></svg>
