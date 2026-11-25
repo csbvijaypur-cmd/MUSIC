@@ -88,9 +88,9 @@ function VideoStage() {
     <div ref={box} className={'yt-stage' + (visible ? ' show' : '') + (showVideo ? '' : ' hidden-video')} aria-hidden={!visible}>
       <div className={'yt-slot' + (active === 0 ? ' active' : '')}><div ref={a} /></div>
       <div className={'yt-slot' + (active === 1 ? ' active' : '')}><div ref={b} /></div>
-      {!IS_APP && <button className="yt-fs" onClick={toggleVideoFullscreen} aria-label={full ? 'Exit full screen' : 'Full screen'} title={full ? 'Exit full screen (F)' : 'Full screen (F)'}>
-        <Icon name={full ? 'shrink' : 'expand'} size={18} />
-      </button>}
+      <button className="yt-fs" onClick={toggleVideoFullscreen} aria-label={full ? 'Make video small' : 'Make video big'} title={IS_APP ? undefined : (full ? 'Exit full screen (F)' : 'Full screen (F)')}>
+        <Icon name={full ? 'shrink' : 'expand'} size={IS_APP ? 20 : 18} />
+      </button>
     </div>
   );
 }
