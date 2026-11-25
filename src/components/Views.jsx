@@ -209,7 +209,10 @@ export function Settings() {
       <section className="panel glass">
         <h3>App install</h3>
         <p className="note">Install on your phone or PC.</p>
-        <button className="btn" disabled={!install} onClick={() => install?.prompt()}>{install ? 'Install' : 'Browser menu → "Install app" / "Add to Home screen"'}</button>
+        <div className="row-btns">
+          {!window.Capacitor && <a className="btn primary" href="https://github.com/csbvijaypur-cmd/MUSIC/releases/latest/download/Dhun.apk">Download Android app</a>}
+          <button className="btn" disabled={!install} onClick={() => install?.prompt()}>{install ? 'Install web app' : 'Browser menu → "Install app"'}</button>
+        </div>
       </section>
       <section className="panel glass">
         <h3>Keyboard shortcuts</h3>
