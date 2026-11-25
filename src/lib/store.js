@@ -147,7 +147,9 @@ function stopAll(except) {
   if (except !== 'spotify' && state.activeKind === 'spotify') SP.pause();
 }
 function fail(msg, skip) {
-  setState({ error: msg, loading: false });
+  // The previous song must not keep playing under the new title
+  stopAll();
+  setState({ error: msg, loading: false, playing: false });
   setTimeout(() => state.error === msg && setState({ error: '' }), 4500);
   if (skip && state.index < state.queue.length - 1) setTimeout(next, 1200);
 }

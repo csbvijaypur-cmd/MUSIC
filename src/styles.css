@@ -644,3 +644,6 @@ button, .card, .col-card, .mood, .track-row { touch-action: manipulation; }
 }
 .switch { display: flex; }
 @media (max-width: 900px) { .now-stage { width: min(100%, 30vh); } }
+/* QA fixes */
+.spot-info { width: 100%; overflow: hidden; }
+.cards.shelf { overflow-anchor: none; }
