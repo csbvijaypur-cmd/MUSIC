@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script>if (/netlify\.app$/.test(location.hostname)) document.documentElement.classList.add('has-badge');</script>
+    <script>if (/netlify\.app$/.test(location.hostname)) document.documentElement.classList.add('has-badge'); if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) document.documentElement.classList.add('is-app');</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0b0b10" />
