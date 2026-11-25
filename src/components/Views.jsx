@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Icon from './Icon.jsx';
 import TrackRow from './TrackRow.jsx';
-import { AutoplaySwitch, VideoSwitch } from './NowPlaying.jsx';
+import { AutoplaySwitch } from './NowPlaying.jsx';
 import { DEMO_TRACKS } from '../lib/demo.js';
 import * as AU from '../lib/audius.js';
 import * as CT from '../lib/catalog.js';
@@ -110,7 +110,7 @@ export function Home({ go }) {
   );
 }
 
-const SOURCES = [['all', 'All'], ['catalog', 'Songs'], ['youtube', 'Videos'], ['spotify', 'Spotify'], ['audius', 'Audius']];
+const SOURCES = [['all', 'All'], ['catalog', 'Songs'], ['spotify', 'Spotify'], ['audius', 'Audius']];
 
 export function Search({ initial = '' }) {
   const [q, setQ] = useState(initial);
@@ -127,7 +127,6 @@ export function Search({ initial = '' }) {
       setBusy(true);
       const jobs = {
         catalog: CT.search(query),
-        youtube: cfg.youtubeApiKey ? YT.search(query) : Promise.reject(new Error('Add a YouTube API key in Settings')),
         spotify: SP.isLoggedIn() ? SP.search(query) : Promise.resolve(null),
         audius: AU.search(query),
       };
@@ -138,7 +137,7 @@ export function Search({ initial = '' }) {
     return () => clearTimeout(id);
   }, [q]);
 
-  const shown = src === 'all' ? ['catalog', 'youtube', 'spotify', 'audius'] : [src];
+  const shown = src === 'all' ? ['catalog', 'spotify', 'audius'] : [src];
   return (
     <div className="view">
       <div className="search-box glass">
@@ -267,8 +266,6 @@ export function Settings() {
         <h3>Playback</h3>
         <AutoplaySwitch />
         <p className="note">When your queue ends, Dhun keeps playing songs similar to the one you played.</p>
-        <VideoSwitch />
-        <p className="note">Off: album art and lyrics stay big, the video shrinks to a small corner player.</p>
       </section>
       {/* Keys are built into the published app, so this only shows in a local build without them */}
       {!import.meta.env.VITE_YOUTUBE_API_KEY && <form className="panel glass" onSubmit={save}>
@@ -298,7 +295,7 @@ export function Settings() {
       </section>}
       <section className="panel glass">
         <h3>Keyboard shortcuts</h3>
-        <p className="note"><kbd>Space</kbd> play/pause · <kbd>→</kbd>/<kbd>←</kbd> 10 sec · <kbd>Shift</kbd>+<kbd>→</kbd> next · <kbd>L</kbd> karaoke · <kbd>F</kbd> video full screen · <kbd>/</kbd> search</p>
+        <p className="note"><kbd>Space</kbd> play/pause · <kbd>→</kbd>/<kbd>←</kbd> 10 sec · <kbd>Shift</kbd>+<kbd>→</kbd> next · <kbd>L</kbd> karaoke · <kbd>/</kbd> search</p>
       </section>
     </div>
   );

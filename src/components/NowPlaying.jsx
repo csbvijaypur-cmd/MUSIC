@@ -73,7 +73,6 @@ export default function NowPlaying({ open, onClose, onKaraoke }) {
         {t && <AddToPlaylistButton t={t} />}
         {t && <ShareButton t={t} />}
         <SleepButton />
-        {hasVideo && <button className={'ib vid-toggle' + (showVideo ? ' on' : '')} onClick={() => setShowVideo(!showVideo)} aria-pressed={showVideo} aria-label={showVideo ? 'Hide video' : 'Show video'} title={showVideo ? 'Hide video' : 'Show video'}><Icon name="video" size={18} /></button>}
         <button className="ib" onClick={onKaraoke} aria-label="Full-screen lyrics"><Icon name="expand" size={18} /></button>
         </span>
       </div>
