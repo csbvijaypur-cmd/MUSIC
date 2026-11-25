@@ -3,6 +3,7 @@ import Icon from './Icon.jsx';
 import Lyrics, { LyricsLang } from './Lyrics.jsx';
 import Visualizer from './Visualizer.jsx';
 import { SourceBadge } from './TrackRow.jsx';
+import { NowControls } from './PlayerBar.jsx';
 import { useStore, jumpTo, removeAt, moveItem, setAutoplay, setShowVideo } from '../lib/store.js';
 
 export function VideoSwitch() {
@@ -63,6 +64,7 @@ export default function NowPlaying({ open, onClose, onKaraoke }) {
         <h2 key={t?.id}>{t?.title || 'Dhun'}</h2>
         <p>{t ? <><SourceBadge source={t.source} /> {t.artist}{t.matchedFrom ? ' · via YouTube' : ''}</> : 'Nothing playing'}</p>
       </div>
+      {t && <NowControls />}
       <div className="tabs" role="tablist">
         <button role="tab" aria-selected={tab === 'lyrics'} onClick={() => setTab('lyrics')}>Lyrics</button>
         <button role="tab" aria-selected={tab === 'queue'} onClick={() => setTab('queue')}>Queue</button>

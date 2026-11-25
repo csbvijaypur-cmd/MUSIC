@@ -349,3 +349,16 @@ input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.3); }
 .vid-toggle.on { opacity: 1; color: var(--accent); }
 /* Video off: smallest player YouTube allows, tucked in the corner */
 .yt-stage.mini.hidden-video { width: 200px; height: 200px; opacity: 0.9; }
+
+/* Phone: full controls in Now Playing + thin progress line on the bar */
+.now-controls { display: none; }
+.bar-progress { display: none; }
+@media (max-width: 900px) {
+  .now-controls { display: block; margin: 4px 0 10px; }
+  .now-controls .seek input { height: 28px; }
+  .now-controls .seek input::-webkit-slider-thumb { width: 18px; height: 18px; margin-top: -7px; }
+  .controls.big { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .controls.big .ib { display: grid !important; place-items: center; width: 44px; height: 44px; position: relative; }
+  .controls.big .play-btn { width: 62px; height: 62px; }
+  .bar-progress { display: block; position: absolute; left: 0; top: 0; height: 3px; background: var(--accent); box-shadow: 0 0 8px var(--accent); border-radius: 0 3px 3px 0; transition: width 0.25s linear; z-index: 2; }
+}
