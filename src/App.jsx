@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import LogoMark from './components/LogoMark.jsx';
 import Icon from './components/Icon.jsx';
 import PlayerBar from './components/PlayerBar.jsx';
 import NowPlaying from './components/NowPlaying.jsx';
@@ -205,7 +206,7 @@ export default function App() {
       </div>
 
       <nav className="side glass" aria-label="Main">
-        <div className="logo"><svg viewBox="0 0 64 64" width="30" height="30"><path d="M6 38c6 0 6-12 12-12s6 20 12 20 6-28 12-28 6 20 12 20" fill="none" stroke="var(--accent)" strokeWidth="6" strokeLinecap="round" /></svg><span>DHUN</span></div>
+        <div className="logo"><LogoMark size={30} /><span>DHUN</span></div>
         {NAV.map(([k, l, ic]) => (
           <button key={k} className={'nav' + (view === k ? ' on' : '')} onClick={() => go(k)} aria-current={view === k ? 'page' : undefined}>
             <Icon name={ic} /><span>{l}</span>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import Icon from './Icon.jsx';
+import LogoMark from './LogoMark.jsx';
 import TrackRow from './TrackRow.jsx';
 import { AutoplaySwitch, VideoSwitch } from './NowPlaying.jsx';
 import { DEMO_TRACKS } from '../lib/demo.js';
@@ -172,7 +173,7 @@ export function Home({ go }) {
     <div className="view">
       <div className="home-top">
         <div className="hello-wrap">
-          <span className="brand" aria-hidden="true"><svg viewBox="0 0 64 64" width="22" height="22"><path d="M6 38c6 0 6-12 12-12s6 20 12 20 6-28 12-28 6 20 12 20" fill="none" stroke="var(--accent)" strokeWidth="7" strokeLinecap="round" /></svg>DHUN</span>
+          <span className="brand" aria-hidden="true"><LogoMark size={20} />DHUN</span>
           <p className="hello">{greet()}</p>
         </div>
         <QuickBar go={go} />
