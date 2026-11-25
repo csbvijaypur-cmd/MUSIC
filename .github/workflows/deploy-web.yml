@@ -1,8 +1,7 @@
 name: Deploy website (GitHub Pages)
 
+# Repo is private, so Pages is off. Run this by hand after making the repo public.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
