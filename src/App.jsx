@@ -104,7 +104,7 @@ function VideoStage() {
         if (!n) return null;
         const r = n.getBoundingClientRect();
         const ok = r.width >= 180 && r.left < innerWidth - 50 && r.top >= 0 && r.bottom <= innerHeight - 40 && r.top < innerHeight && r.bottom > 0
-          && getComputedStyle(n.closest('.now') || n).visibility !== 'hidden';
+          && (!n.closest('.now') || innerWidth > 900 || n.closest('.now').classList.contains('open'));
         return ok ? r : null;
       };
       const nowSlot = (getState().showVideo || IS_APP) ? fits(document.querySelector('.now-stage')) : null;

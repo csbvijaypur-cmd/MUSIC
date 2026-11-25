@@ -508,3 +508,27 @@ button, .card, .col-card, .mood, .track-row { touch-action: manipulation; }
 .is-app .yt-stage.mini.dragging { transition: none; }
 .is-app .yt-stage.mini .yt-drag { display: grid; place-items: center; position: absolute; z-index: 3; top: 8px; left: 8px; width: 40px; height: 40px; border-radius: 14px; color: #fff; background: rgb(0 0 0 / 0.6); border: 1px solid rgb(255 255 255 / 0.15); touch-action: none; cursor: grab; }
 .is-app .yt-stage.mini.dragging .yt-drag { background: var(--accent); }
+
+/* ---------- v1.0.28: Now Playing fixes + lighter phone rendering ---------- */
+.controls .play-btn { flex: none; aspect-ratio: 1; }
+@media (max-width: 900px) {
+  /* Solid sheet: nothing from the page behind shows through */
+  .now, .now.glass { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, #0b0b14) 0%, #0b0b14 45%, #08080f 100%); border: 0;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  /* Controls fit any phone width; play stays a circle */
+  .controls.big { gap: 2px; }
+  .controls.big .ib { flex: 0 1 44px; min-width: 34px; width: auto; }
+  .controls.big .ib svg { flex: none; }
+  .controls.big .play-btn { width: 60px; height: 60px; }
+  /* Fewer always-running effects */
+  .bar-viz { display: none; }
+  .spot-art img, .cover { animation: none !important; }
+  .spot .orb i { animation: none; }
+  .ambient-art { filter: blur(28px) saturate(1.3); }
+  .spot-bg { filter: blur(22px) saturate(1.3) brightness(0.55); }
+  .now-body { mask-image: none; }
+}
+@media (max-width: 380px) {
+  .controls.big .play-btn { width: 54px; height: 54px; }
+  .controls.big .ib svg { width: 22px; height: 22px; }
+}
