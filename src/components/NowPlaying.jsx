@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Icon from './Icon.jsx';
-import Lyrics from './Lyrics.jsx';
+import Lyrics, { LyricsLang } from './Lyrics.jsx';
 import Visualizer from './Visualizer.jsx';
 import { SourceBadge } from './TrackRow.jsx';
 import { useStore, jumpTo, removeAt, moveItem } from '../lib/store.js';
@@ -53,6 +53,7 @@ export default function NowPlaying({ open, onClose, onKaraoke }) {
         <button role="tab" aria-selected={tab === 'queue'} onClick={() => setTab('queue')}>Queue</button>
         <button className="ib" onClick={onKaraoke} aria-label="Full-screen lyrics"><Icon name="expand" size={18} /></button>
       </div>
+      {tab === 'lyrics' && <LyricsLang />}
       <div className="now-body">{tab === 'lyrics' ? <Lyrics /> : <Queue />}</div>
     </aside>
   );

@@ -18,7 +18,7 @@ let state = {
   queue: saved.queue || [], index: saved.index ?? -1, playing: false, loading: false,
   position: 0, duration: 0, volume: saved.volume ?? 0.85, shuffle: false, repeat: 'off',
   accent: saved.themeColor && saved.themeColor !== 'auto' ? saved.themeColor : 'rgb(124 97 255)', lyrics: null, error: '', liked: saved.liked || [],
-  spotifyPremium: saved.spotifyPremium ?? false, themeColor: saved.themeColor || 'auto', eq: saved.eq || [0, 0, 0, 0, 0], eqPreset: saved.eqPreset || 'Flat', videoVisible: false, activeKind: null,
+  spotifyPremium: saved.spotifyPremium ?? false, themeColor: saved.themeColor || 'auto', lyricsMode: saved.lyricsMode || 'original', eq: saved.eq || [0, 0, 0, 0, 0], eqPreset: saved.eqPreset || 'Flat', videoVisible: false, activeKind: null,
 };
 const listeners = new Set();
 export const getState = () => state;
@@ -28,8 +28,8 @@ export function setState(patch) {
 }
 export const useStore = (sel) => useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), () => sel(state));
 listeners.add(() => {
-  const { queue, index, volume, liked, spotifyPremium, eq, eqPreset, themeColor } = state;
-  safeSet('dhun.state', JSON.stringify({ queue: queue.slice(0, 200), index, volume, liked, spotifyPremium, eq, eqPreset, themeColor }));
+  const { queue, index, volume, liked, spotifyPremium, eq, eqPreset, themeColor, lyricsMode } = state;
+  safeSet('dhun.state', JSON.stringify({ queue: queue.slice(0, 200), index, volume, liked, spotifyPremium, eq, eqPreset, themeColor, lyricsMode }));
 });
 const current = () => state.queue[state.index];
 
