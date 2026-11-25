@@ -24,7 +24,7 @@ const P = {
   video: 'M3 6h12v12H3zM15 10l6-3v10l-6-3z',
   moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
   share: 'M18 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM18 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM8.6 13.5l6.8 4M15.4 6.5l-6.8 4',
-  listplus: 'M4 6h12M4 12h12M4 18h7M18 14v7M14.5 17.5h7',
+  listplus: 'M4 8h11v12H4zM8 4h12v11M9.5 11v6M6.5 14h6',
   clock: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2',
 };
 export default function Icon({ name, size = 20, fill, ...rest }) {
