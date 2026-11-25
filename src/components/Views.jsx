@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Icon from './Icon.jsx';
 import TrackRow from './TrackRow.jsx';
+import { AutoplaySwitch } from './NowPlaying.jsx';
 import { DEMO_TRACKS } from '../lib/demo.js';
 import * as AU from '../lib/audius.js';
 import * as CT from '../lib/catalog.js';
@@ -183,6 +184,11 @@ export function Settings() {
     <div className="view settings">
       <h1>Settings</h1>
       <ThemePicker />
+      <section className="panel glass">
+        <h3>Playback</h3>
+        <AutoplaySwitch />
+        <p className="note">When your queue ends, Dhun keeps playing songs similar to the one you played.</p>
+      </section>
       {/* Keys are built into the published app, so this only shows in a local build without them */}
       {!import.meta.env.VITE_YOUTUBE_API_KEY && <form className="panel glass" onSubmit={save}>
         <h3>API keys</h3>

@@ -3,7 +3,12 @@ import Icon from './Icon.jsx';
 import Lyrics, { LyricsLang } from './Lyrics.jsx';
 import Visualizer from './Visualizer.jsx';
 import { SourceBadge } from './TrackRow.jsx';
-import { useStore, jumpTo, removeAt, moveItem } from '../lib/store.js';
+import { useStore, jumpTo, removeAt, moveItem, setAutoplay } from '../lib/store.js';
+
+export function AutoplaySwitch({ label = 'Autoplay similar songs' }) {
+  const on = useStore((s) => s.autoplay);
+  return <label className="switch"><input type="checkbox" checked={on} onChange={(e) => setAutoplay(e.target.checked)} /><span />{label}</label>;
+}
 
 function Queue() {
   const queue = useStore((s) => s.queue);
@@ -11,19 +16,22 @@ function Queue() {
   const [drag, setDrag] = useState(null);
   if (!queue.length) return <div className="lyr-empty">Queue is empty</div>;
   return (
+    <>
+    <div className="q-auto"><AutoplaySwitch /></div>
     <ol className="queue">
       {queue.map((t, i) => (
         <li key={t.id + i} className={i === index ? 'cur' : i < index ? 'past' : ''} draggable
           onDragStart={() => setDrag(i)} onDragOver={(e) => e.preventDefault()} onDrop={() => { if (drag !== null) moveItem(drag, i); setDrag(null); }}>
           <button className="q-main" onClick={() => jumpTo(i)}>
             {t.artSmall || t.art ? <img src={t.artSmall || t.art} alt="" loading="lazy" /> : <span className="q-ph" />}
-            <span><b>{t.title}</b><small><SourceBadge source={t.source} /> {t.artist}</small></span>
+            <span><b>{t.title}</b><small><SourceBadge source={t.source} /> {t.radio && <em className="q-similar">Similar</em>} {t.artist}</small></span>
           </button>
           {i > index + 1 && <button className="ib" onClick={() => moveItem(i, index + 1)} aria-label="Move up next"><Icon name="up" size={16} /></button>}
           {i !== index && <button className="ib" onClick={() => removeAt(i)} aria-label="Remove"><Icon name="trash" size={16} /></button>}
         </li>
       ))}
     </ol>
+    </>
   );
 }
 

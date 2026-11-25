@@ -11,6 +11,7 @@ import { fetchLyrics } from './lyrics.js';
 import { artColor, preloadImage } from './color.js';
 import { createSynth } from './demo.js';
 import { safeGet, safeSet } from './config.js';
+import { similar } from './catalog.js';
 
 // ---------------- tiny store ----------------
 const saved = (() => { try { return JSON.parse(safeGet('dhun.state') || '{}'); } catch { return {}; } })();
@@ -18,7 +19,7 @@ let state = {
   queue: saved.queue || [], index: saved.index ?? -1, playing: false, loading: false,
   position: 0, duration: 0, volume: saved.volume ?? 0.85, shuffle: false, repeat: 'off',
   accent: saved.themeColor && saved.themeColor !== 'auto' ? saved.themeColor : 'rgb(124 97 255)', lyrics: null, error: '', liked: saved.liked || [],
-  spotifyPremium: saved.spotifyPremium ?? false, themeColor: saved.themeColor || 'auto', lyricsMode: saved.lyricsMode || 'original', eq: saved.eq || [0, 0, 0, 0, 0], eqPreset: saved.eqPreset || 'Flat', videoVisible: false, activeKind: null,
+  spotifyPremium: saved.spotifyPremium ?? false, themeColor: saved.themeColor || 'auto', lyricsMode: saved.lyricsMode || 'original', autoplay: saved.autoplay ?? true, eq: saved.eq || [0, 0, 0, 0, 0], eqPreset: saved.eqPreset || 'Flat', videoVisible: false, activeKind: null,
 };
 const listeners = new Set();
 export const getState = () => state;
@@ -28,8 +29,8 @@ export function setState(patch) {
 }
 export const useStore = (sel) => useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), () => sel(state));
 listeners.add(() => {
-  const { queue, index, volume, liked, spotifyPremium, eq, eqPreset, themeColor, lyricsMode } = state;
-  safeSet('dhun.state', JSON.stringify({ queue: queue.slice(0, 200), index, volume, liked, spotifyPremium, eq, eqPreset, themeColor, lyricsMode }));
+  const { queue, index, volume, liked, spotifyPremium, eq, eqPreset, themeColor, lyricsMode, autoplay } = state;
+  safeSet('dhun.state', JSON.stringify({ queue: queue.slice(-200), index: Math.max(-1, index - Math.max(0, queue.length - 200)), volume, liked, spotifyPremium, eq, eqPreset, themeColor, lyricsMode, autoplay }));
 });
 const current = () => state.queue[state.index];
 
@@ -156,7 +157,7 @@ async function start(from = 0) {
   if (!t) return;
   const my = ++token;
   setState({ loading: true, position: from, duration: t.duration || 0, error: '', lyrics: null });
-  theme(t); lyricsFor(t); mediaSession(t);
+  theme(t); lyricsFor(t); mediaSession(t); autoExtend();
   try {
     const p = await resolvePlayable(t);
     if (my !== token) return;
@@ -251,8 +252,23 @@ function nextIndex(auto) {
   if (state.index + 1 < n) return state.index + 1;
   return state.repeat === 'all' || !auto ? 0 : -1;
 }
-export function next(auto = false) {
-  const i = nextIndex(auto === true);
+// ---------------- autoplay: keep similar songs coming ----------------
+let extending = null;
+export function autoExtend() {
+  const t = current();
+  if (!t || !state.autoplay || state.repeat === 'all' || state.index < state.queue.length - 2) return Promise.resolve();
+  if (extending) return extending;
+  extending = similar(t, state.queue)
+    .then((more) => { if (more.length) { setState((s) => ({ queue: [...s.queue, ...more] })); preloadNext(); } })
+    .catch(() => {})
+    .finally(() => { extending = null; });
+  return extending;
+}
+export const setAutoplay = (on) => { setState({ autoplay: on }); if (on) autoExtend(); };
+
+export async function next(auto = false) {
+  let i = nextIndex(auto === true);
+  if (i < 0 && state.autoplay) { await autoExtend(); i = nextIndex(auto === true); }
   if (i < 0) { setState({ playing: false }); return; }
   setState({ index: i }); start();
 }
