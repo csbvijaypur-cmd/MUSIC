@@ -5,7 +5,7 @@ import NowPlaying from './components/NowPlaying.jsx';
 import Karaoke from './components/Karaoke.jsx';
 import Equalizer from './components/Equalizer.jsx';
 import { PlaylistSheet } from './components/Extras.jsx';
-import { Home, Search, Library, Settings } from './components/Views.jsx';
+import { Home, Search, Library, Settings, Collection } from './components/Views.jsx';
 import { useStore, setState, mountYouTube, toggle, seek, next, livePosition, getState } from './lib/store.js';
 import * as SP from './lib/spotify.js';
 import { IS_APP } from './lib/config.js';
@@ -83,7 +83,8 @@ function VideoStage() {
 export default function App() {
   const [view, setView] = useState('home');
   const [q0, setQ0] = useState('');
-  const go = useCallback((v, q) => { setQ0(q || ''); setView(v); }, []);
+  const [col, setCol] = useState(null);
+  const go = useCallback((v, q) => { if (v === 'collection') setCol(q); else setQ0(q || ''); setView(v); document.querySelector('.main')?.scrollTo?.(0, 0); }, []);
   const [nowOpen, setNowOpen] = useState(false);
   const [karaoke, setKaraoke] = useState(false);
   const [eq, setEq] = useState(false);
@@ -161,9 +162,10 @@ export default function App() {
 
       <main className="main" key={view}>
         {view === 'home' && <Home go={go} />}
-        {view === 'search' && <Search initial={q0} />}
+        {view === 'search' && <Search initial={q0} go={go} />}
         {view === 'library' && <Library />}
         {view === 'settings' && <Settings />}
+        {view === 'collection' && col && <Collection c={col} go={go} />}
       </main>
 
       <NowPlaying open={nowOpen} onClose={() => setNowOpen(false)} onKaraoke={() => setKaraoke(true)} />

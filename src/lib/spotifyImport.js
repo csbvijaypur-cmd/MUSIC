@@ -11,10 +11,10 @@ export async function fetchSpotifyPlaylist(link) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Import failed');
   return {
-    name: data.name,
+    name: data.name, image: data.image,
     tracks: data.tracks.map((t) => ({
       id: 'sp:' + t.id, source: 'catalog', title: t.title, artist: t.artist, album: data.name,
-      art: data.image, artSmall: data.image, duration: t.duration,
+      art: t.art || data.image, artSmall: t.art || data.image, duration: t.duration,
     })),
   };
 }

@@ -4,6 +4,7 @@ const HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'public, max-age=600',
+  'Netlify-CDN-Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400, durable',
 };
 const reply = (status, body) => new Response(JSON.stringify(body), { status, headers: HEADERS });
 
@@ -45,5 +46,9 @@ export default async (req) => {
       duration: Math.round((t.duration || 0) / 1000),
     }));
   if (!tracks.length) return reply(404, { error: 'No songs found in this playlist' });
+  // Album art per song via Spotify's public oEmbed (the embed list has none). Best effort, 4 s max.
+  const art = (t) => fetch(`https://open.spotify.com/oembed?url=spotify:track:${t.id}`, { signal: AbortSignal.timeout(4000) })
+    .then((r) => (r.ok ? r.json() : null)).then((j) => { if (j?.thumbnail_url) t.art = j.thumbnail_url; }).catch(() => {});
+  await Promise.all(tracks.slice(0, 100).map(art));
   return reply(200, { name: entity.name || entity.title || 'Spotify playlist', image, type, tracks });
 };

@@ -10,6 +10,7 @@ import * as SP from '../lib/spotify.js';
 import { getConfig, saveConfig, IS_APP } from '../lib/config.js';
 import { VERSION, checkUpdate, downloadUpdate } from '../lib/update.js';
 import { fetchSpotifyPlaylist, isSpotifyLink } from '../lib/spotifyImport.js';
+import { LANGS, loadCollection, fromSpotifyLink } from '../lib/collections.js';
 import { useStore, setState, playList, playTrack, toggle, setThemeColor, createPlaylist, importPlaylist, renamePlaylist, deletePlaylist, removeFromPlaylist, clearHistory, notify } from '../lib/store.js';
 
 const greet = () => { const h = new Date().getHours(); return h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
@@ -20,6 +21,7 @@ function QuickBar({ go }) {
     e.preventDefault();
     const q = v.trim();
     if (!q) return;
+    if (isSpotifyLink(q)) { setV(''); return go('collection', fromSpotifyLink(q)); }
     if (YT.videoIdFromUrl(q) && q.includes('/')) { const t = await YT.fromUrl(q); if (t) { setV(''); return playTrack(t); } }
     go('search', q);
   };
@@ -37,6 +39,65 @@ function Card({ t, onClick }) {
       <span className="card-art">{t.art && <img src={t.art} alt="" loading="lazy" />}<span className="card-play"><Icon name="play" size={22} /></span></span>
       <b>{t.title}</b><small>{t.artist}</small>
     </button>
+  );
+}
+
+function ColCard({ c, go, color }) {
+  const [img, setImg] = useState('');
+  useEffect(() => { let on = true; loadCollection(c).then((d) => on && setImg(d.image)).catch(() => {}); return () => { on = false; }; }, [c.key]);
+  return (
+    <button className="col-card" style={{ '--c': color }} onClick={() => go('collection', c)} aria-label={`Open ${c.name}`}>
+      <span className="col-art">
+        {img ? <img src={img} alt="" loading="lazy" /> : <span className="col-ph"><b>{c.name}</b></span>}
+        <span className="col-tag">{c.tag}</span>
+        <span className="card-play"><Icon name="play" size={22} /></span>
+      </span>
+      <b>{c.name}</b>
+    </button>
+  );
+}
+
+function Popular({ go }) {
+  const [lang, setLang] = useState(() => localStorage.getItem('dhun.lang') || 'hindi');
+  const L = LANGS.find((l) => l.id === lang) || LANGS[0];
+  const pick = (id) => { setLang(id); try { localStorage.setItem('dhun.lang', id); } catch {} };
+  return (
+    <>
+      <div className="sec-row">
+        <h2 className="sec">Popular playlists</h2>
+        <div className="seg" role="tablist" aria-label="Language">
+          {LANGS.map((l) => <button key={l.id} role="tab" aria-selected={lang === l.id} className={lang === l.id ? 'on' : ''} onClick={() => pick(l.id)}>{l.name}</button>)}
+        </div>
+      </div>
+      <div className="cards col-row" key={L.id}>{L.lists.map((c) => <ColCard key={c.key} c={c} go={go} color={L.c} />)}</div>
+    </>
+  );
+}
+
+export function Collection({ c, go }) {
+  const [d, setD] = useState(null);
+  const [err, setErr] = useState('');
+  const [saved, setSaved] = useState(false);
+  useEffect(() => { setD(null); setErr(''); loadCollection(c).then(setD).catch((e) => setErr(e.message)); }, [c.key]);
+  const list = d?.tracks || [];
+  return (
+    <div className="view">
+      <button className="back-btn" onClick={() => go('home')}><Icon name="prev" size={14} /> Home</button>
+      <section className="lib-head col-head">
+        <div className="lib-art">{d?.image ? <img src={d.image} alt="" /> : <Icon name="lyrics" size={56} />}</div>
+        <div><p className="kicker">{c.kind === 'spotify' ? 'Popular playlist' : 'Dhun mix'}</p><h1>{d?.name || c.name || 'Spotify playlist'}</h1>
+          <p className="muted">{d ? `${list.length} songs` : err || 'Loading…'}</p>
+          {list.length > 0 && <div className="row-btns">
+            <button className="btn primary" onClick={() => playList(list, 0)}><Icon name="play" size={18} /> Play all</button>
+            <button className="btn" onClick={() => playList([...list].sort(() => Math.random() - 0.5), 0)}><Icon name="shuffle" size={18} /> Shuffle</button>
+            <button className="btn" disabled={saved} onClick={() => { importPlaylist(d?.name || c.name, list); setSaved(true); }}><Icon name={saved ? 'heart' : 'plus'} size={18} fill={saved} /> {saved ? 'Saved' : 'Save to library'}</button>
+          </div>}
+        </div>
+      </section>
+      {!d && !err && <div className="list">{Array.from({ length: 8 }, (_, i) => <span key={i} className="skel row-skel" />)}</div>}
+      {err && <p className="muted center">{err} <button className="btn" onClick={() => { setErr(''); loadCollection(c).then(setD).catch((e) => setErr(e.message)); }}>Retry</button></p>}
+      {list.length > 0 && <div className="list">{list.map((t, i) => <TrackRow key={t.id + i} t={t} i={i} onPlay={() => playList(list, i)} />)}</div>}
+    </div>
   );
 }
 
@@ -96,6 +157,8 @@ export function Home({ go }) {
         </div>
       </section>
 
+      <Popular go={go} />
+
       <Moods />
 
       {recent.length > 0 && <><h2 className="sec">Recently played</h2><div className="cards">{recent.map((t) => <Card key={t.id} t={t} onClick={() => playTrack(t)} />)}</div></>}
@@ -113,7 +176,7 @@ export function Home({ go }) {
 
 const SOURCES = [['all', 'All'], ['catalog', 'Songs'], ...(IS_APP ? [] : [['youtube', 'Videos']]), ['spotify', 'Spotify'], ['audius', 'Audius']];
 
-export function Search({ initial = '' }) {
+export function Search({ initial = '', go }) {
   const [q, setQ] = useState(initial);
   const [src, setSrc] = useState('all');
   const [res, setRes] = useState({});
@@ -123,6 +186,7 @@ export function Search({ initial = '' }) {
   useEffect(() => {
     const query = q.trim();
     if (!query) { setRes({}); return; }
+    if (isSpotifyLink(query)) { setRes({}); go?.('collection', fromSpotifyLink(query)); return; }
     if (YT.videoIdFromUrl(query) && query.includes('/')) { YT.fromUrl(query).then((t) => t && setRes({ youtube: [t] })); return; }
     const id = setTimeout(async () => {
       setBusy(true);
