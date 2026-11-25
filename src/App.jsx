@@ -10,11 +10,40 @@ import * as SP from './lib/spotify.js';
 
 const NAV = [['home', 'Home', 'home'], ['search', 'Search', 'search'], ['library', 'Liked', 'heart'], ['settings', 'Settings', 'settings']];
 
+// Full screen for the video: real browser full screen where allowed (desktop, Android),
+// otherwise (iPhone Safari) the stage simply covers the whole window.
+const isFull = () => !!document.fullscreenElement || !!document.querySelector('.yt-stage.fs');
+export function toggleVideoFullscreen() {
+  const el = document.querySelector('.yt-stage');
+  if (!el || !getState().videoVisible && !isFull()) return;
+  if (isFull()) {
+    el.classList.remove('fs');
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    screen.orientation?.unlock?.();
+    return;
+  }
+  const pseudo = () => el.classList.add('fs');
+  if (el.requestFullscreen) {
+    el.requestFullscreen({ navigationUI: 'hide' })
+      .then(() => screen.orientation?.lock?.('landscape').catch(() => {}))
+      .catch(pseudo);
+  } else pseudo();
+}
+
 function VideoStage() {
   const a = useRef(null), b = useRef(null), box = useRef(null);
   const visible = useStore((s) => s.videoVisible);
   const active = useStore((s) => s.ytActive ?? 0);
+  const [full, setFull] = useState(false);
   useEffect(() => { mountYouTube(a.current, b.current); }, []);
+  useEffect(() => {
+    const h = () => { setFull(isFull()); if (!document.fullscreenElement) screen.orientation?.unlock?.(); };
+    document.addEventListener('fullscreenchange', h);
+    const obs = new MutationObserver(h); obs.observe(box.current, { attributes: true, attributeFilter: ['class'] });
+    return () => { document.removeEventListener('fullscreenchange', h); obs.disconnect(); };
+  }, []);
+  // Leave full screen when the video goes away (e.g. next song is not a video)
+  useEffect(() => { if (!visible && isFull()) toggleVideoFullscreen(); }, [visible]);
   // Float the (always-mounted) player over the Now Playing slot, or as a mini card.
   useLayoutEffect(() => {
     let raf;
@@ -23,6 +52,7 @@ function VideoStage() {
       const slot = document.querySelector('.now-stage');
       const r = slot?.getBoundingClientRect();
       const el = box.current;
+      if (isFull()) return;
       const karaokeOn = !!document.querySelector('.karaoke');
       const onScreen = !karaokeOn && r && r.width > 150 && r.left < innerWidth - 50 && r.top < innerHeight && r.bottom > 0 && getComputedStyle(slot.closest('.now')).visibility !== 'hidden';
       if (onScreen) {
@@ -37,6 +67,9 @@ function VideoStage() {
     <div ref={box} className={'yt-stage' + (visible ? ' show' : '')} aria-hidden={!visible}>
       <div className={'yt-slot' + (active === 0 ? ' active' : '')}><div ref={a} /></div>
       <div className={'yt-slot' + (active === 1 ? ' active' : '')}><div ref={b} /></div>
+      <button className="yt-fs" onClick={toggleVideoFullscreen} aria-label={full ? 'Exit full screen' : 'Full screen'} title={full ? 'Exit full screen (F)' : 'Full screen (F)'}>
+        <Icon name={full ? 'shrink' : 'expand'} size={18} />
+      </button>
     </div>
   );
 }
@@ -64,6 +97,8 @@ export default function App() {
       else if (e.key === 'ArrowRight') seek(livePosition() + 10);
       else if (e.key === 'ArrowLeft') seek(Math.max(0, livePosition() - 10));
       else if (e.key.toLowerCase() === 'l' && getState().queue.length) setKaraoke((v) => !v);
+      else if (e.key.toLowerCase() === 'f') toggleVideoFullscreen();
+      else if (e.key === 'Escape' && document.querySelector('.yt-stage.fs')) toggleVideoFullscreen();
       else if (e.key === '/') { e.preventDefault(); setView('search'); }
     };
     addEventListener('keydown', k);

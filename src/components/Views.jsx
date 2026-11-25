@@ -213,7 +213,7 @@ export function Settings() {
       </section>
       <section className="panel glass">
         <h3>Keyboard shortcuts</h3>
-        <p className="note"><kbd>Space</kbd> play/pause · <kbd>→</kbd>/<kbd>←</kbd> 10 sec · <kbd>Shift</kbd>+<kbd>→</kbd> next · <kbd>L</kbd> karaoke · <kbd>/</kbd> search</p>
+        <p className="note"><kbd>Space</kbd> play/pause · <kbd>→</kbd>/<kbd>←</kbd> 10 sec · <kbd>Shift</kbd>+<kbd>→</kbd> next · <kbd>L</kbd> karaoke · <kbd>F</kbd> video full screen · <kbd>/</kbd> search</p>
       </section>
     </div>
   );
