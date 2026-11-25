@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import Icon from './Icon.jsx';
 import TrackRow from './TrackRow.jsx';
-import { AutoplaySwitch } from './NowPlaying.jsx';
+import { AutoplaySwitch, VideoSwitch } from './NowPlaying.jsx';
 import { DEMO_TRACKS } from '../lib/demo.js';
 import * as AU from '../lib/audius.js';
 import * as CT from '../lib/catalog.js';
 import * as YT from '../lib/youtube.js';
 import * as SP from '../lib/spotify.js';
 import { getConfig, saveConfig } from '../lib/config.js';
+import { VERSION, checkUpdate, downloadUpdate } from '../lib/update.js';
 import { useStore, setState, playList, playTrack, toggle, setThemeColor } from '../lib/store.js';
 
 const greet = () => { const h = new Date().getHours(); return h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
@@ -146,6 +147,32 @@ export function Library() {
   );
 }
 
+function Updates() {
+  const [st, setSt] = useState({ state: 'idle' });
+  const check = () => {
+    setSt({ state: 'checking' });
+    checkUpdate().then((r) => setSt({ state: r.newer ? 'available' : 'latest', ...r })).catch((e) => setSt({ state: 'error', msg: e.message }));
+  };
+  useEffect(check, []);
+  return (
+    <section className="panel glass">
+      <h3>App updates</h3>
+      <p className="note">Installed version: <b>{VERSION}</b>
+        {st.state === 'checking' && ' · Checking…'}
+        {st.state === 'latest' && ' · You have the latest version ✓'}
+        {st.state === 'available' && <> · New version <b>{st.latest}</b> available</>}
+        {st.state === 'error' && ' · ' + st.msg}
+      </p>
+      <div className="row-btns">
+        {st.state === 'available'
+          ? <button className="btn primary" onClick={downloadUpdate}>Download update</button>
+          : <button className="btn" onClick={check} disabled={st.state === 'checking'}>Check for updates</button>}
+      </div>
+      {st.state === 'available' && <p className="note">After the download, open Dhun.apk and tap Update. Your liked songs and settings stay.</p>}
+    </section>
+  );
+}
+
 const SWATCHES = [['Violet', '#7c61ff'], ['Neon pink', '#ff3d8b'], ['Cyan', '#22d3ee'], ['Lime', '#a3e635'], ['Amber', '#fbbf24'], ['Red', '#ff4d4d'], ['Spotify green', '#1ed760'], ['Ice', '#cfe3ff']];
 
 function ThemePicker() {
@@ -188,6 +215,8 @@ export function Settings() {
         <h3>Playback</h3>
         <AutoplaySwitch />
         <p className="note">When your queue ends, Dhun keeps playing songs similar to the one you played.</p>
+        <VideoSwitch />
+        <p className="note">Off: album art and lyrics stay big, the video shrinks to a small corner player.</p>
       </section>
       {/* Keys are built into the published app, so this only shows in a local build without them */}
       {!import.meta.env.VITE_YOUTUBE_API_KEY && <form className="panel glass" onSubmit={save}>
@@ -206,14 +235,15 @@ export function Settings() {
           <button className="btn" onClick={() => { SP.logout(); setLogged(false); }}>Disconnect</button>
         </> : <button className="btn primary" onClick={() => SP.login().catch(() => {})} disabled={!getConfig().spotifyClientId}>Connect Spotify</button>}
       </section>}
-      <section className="panel glass">
+      {window.Capacitor?.isNativePlatform?.() && <Updates />}
+      {!window.Capacitor?.isNativePlatform?.() && <section className="panel glass">
         <h3>App install</h3>
         <p className="note">Install on your phone or PC.</p>
         <div className="row-btns">
-          {!window.Capacitor && <a className="btn primary" href="https://github.com/csbvijaypur-cmd/MUSIC/releases/latest/download/Dhun.apk">Download Android app</a>}
+          <a className="btn primary" href="https://github.com/csbvijaypur-cmd/MUSIC/releases/latest/download/Dhun.apk">Download Android app</a>
           <button className="btn" disabled={!install} onClick={() => install?.prompt()}>{install ? 'Install web app' : 'Browser menu → "Install app"'}</button>
         </div>
-      </section>
+      </section>}
       <section className="panel glass">
         <h3>Keyboard shortcuts</h3>
         <p className="note"><kbd>Space</kbd> play/pause · <kbd>→</kbd>/<kbd>←</kbd> 10 sec · <kbd>Shift</kbd>+<kbd>→</kbd> next · <kbd>L</kbd> karaoke · <kbd>F</kbd> video full screen · <kbd>/</kbd> search</p>

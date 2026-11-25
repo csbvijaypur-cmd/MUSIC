@@ -7,6 +7,8 @@ import Equalizer from './components/Equalizer.jsx';
 import { Home, Search, Library, Settings } from './components/Views.jsx';
 import { useStore, mountYouTube, toggle, seek, next, livePosition, getState } from './lib/store.js';
 import * as SP from './lib/spotify.js';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
 
 const NAV = [['home', 'Home', 'home'], ['search', 'Search', 'search'], ['library', 'Liked', 'heart'], ['settings', 'Settings', 'settings']];
 
@@ -23,7 +25,8 @@ export function toggleVideoFullscreen() {
     return;
   }
   const pseudo = () => el.classList.add('fs');
-  if (el.requestFullscreen) {
+  // In the Android app the window is already full; covering it keeps the Back button working.
+  if (el.requestFullscreen && !Capacitor.isNativePlatform()) {
     el.requestFullscreen({ navigationUI: 'hide' })
       .then(() => screen.orientation?.lock?.('landscape').catch(() => {}))
       .catch(pseudo);
@@ -33,6 +36,7 @@ export function toggleVideoFullscreen() {
 function VideoStage() {
   const a = useRef(null), b = useRef(null), box = useRef(null);
   const visible = useStore((s) => s.videoVisible);
+  const showVideo = useStore((s) => s.showVideo);
   const active = useStore((s) => s.ytActive ?? 0);
   const [full, setFull] = useState(false);
   useEffect(() => { mountYouTube(a.current, b.current); }, []);
@@ -54,7 +58,7 @@ function VideoStage() {
       const el = box.current;
       if (isFull()) return;
       const karaokeOn = !!document.querySelector('.karaoke');
-      const onScreen = !karaokeOn && r && r.width > 150 && r.left < innerWidth - 50 && r.top < innerHeight && r.bottom > 0 && getComputedStyle(slot.closest('.now')).visibility !== 'hidden';
+      const onScreen = getState().showVideo && !karaokeOn && r && r.width > 150 && r.left < innerWidth - 50 && r.top < innerHeight && r.bottom > 0 && getComputedStyle(slot.closest('.now')).visibility !== 'hidden';
       if (onScreen) {
         el.classList.remove('mini');
         el.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${Math.max(200, r.height)}px`;
@@ -64,7 +68,7 @@ function VideoStage() {
     return () => cancelAnimationFrame(raf);
   }, []);
   return (
-    <div ref={box} className={'yt-stage' + (visible ? ' show' : '')} aria-hidden={!visible}>
+    <div ref={box} className={'yt-stage' + (visible ? ' show' : '') + (showVideo ? '' : ' hidden-video')} aria-hidden={!visible}>
       <div className={'yt-slot' + (active === 0 ? ' active' : '')}><div ref={a} /></div>
       <div className={'yt-slot' + (active === 1 ? ' active' : '')}><div ref={b} /></div>
       <button className="yt-fs" onClick={toggleVideoFullscreen} aria-label={full ? 'Exit full screen' : 'Full screen'} title={full ? 'Exit full screen (F)' : 'Full screen (F)'}>
@@ -89,6 +93,30 @@ export default function App() {
   useEffect(() => { document.documentElement.style.setProperty('--accent', accent); document.querySelector('meta[name=theme-color]')?.setAttribute('content', '#07070d'); }, [accent]);
 
   const closeKaraoke = useCallback(() => setKaraoke(false), []);
+
+  // Phone Back button (Android app): close whatever is open first, step by step.
+  // Only when nothing is open does it leave the app (to the background, music keeps playing).
+  const ui = useRef({});
+  ui.current = { view, nowOpen, karaoke, eq };
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const back = () => {
+      const u = ui.current;
+      if (document.fullscreenElement || document.querySelector('.yt-stage.fs')) {
+        if (document.querySelector('.yt-stage.fs') || document.fullscreenElement?.classList.contains('yt-stage')) toggleVideoFullscreen();
+        else document.exitFullscreen().catch(() => {});
+        if (u.karaoke) setKaraoke(false);
+        return;
+      }
+      if (u.karaoke) return setKaraoke(false);
+      if (u.eq) return setEq(false);
+      if (u.nowOpen) return setNowOpen(false);
+      if (u.view !== 'home') return setView('home');
+      CapApp.minimizeApp();
+    };
+    const h = CapApp.addListener('backButton', back);
+    return () => { h.then((x) => x.remove()); };
+  }, []);
   useEffect(() => {
     const k = (e) => {
       if (e.target.closest('input, textarea')) return;
