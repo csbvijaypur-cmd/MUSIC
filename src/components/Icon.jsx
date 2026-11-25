@@ -16,6 +16,7 @@ const P = {
   mute: 'M4 9v6h4l5 4V5L8 9zM17 9l5 6M22 9l-5 6',
   lyrics: 'M4 5h16M4 10h16M4 15h10M4 20h7',
   expand: 'M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7',
+  shrink: 'M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7',
   close: 'M6 6l12 12M18 6L6 18',
   trash: 'M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3',
   link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
